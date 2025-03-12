@@ -1,0 +1,2896 @@
+<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Idioms Quiz Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        secondary: '#F97316',
+                        dark: {
+                            bg: '#FFFFFF',
+                            card: '#F5F5F5', 
+                            text: '#1F2937'
+                        },
+                        light: {
+                            bg: '#FFFFFF',
+                            card: '#F5F5F5', 
+                            text: '#1F2937'
+                        }
+                    },
+                    animation: {
+                        'bounce-slow': 'bounce 3s infinite',
+                        'pulse-slow': 'pulse 3s infinite',
+                        'tada': 'tada 1s ease-in-out',
+                    },
+                    keyframes: {
+                        tada: {
+                            '0%': { transform: 'scale(1)' },
+                            '10%, 20%': { transform: 'scale(0.9) rotate(-3deg)' },
+                            '30%, 50%, 70%, 90%': { transform: 'scale(1.1) rotate(3deg)' },
+                            '40%, 60%, 80%': { transform: 'scale(1.1) rotate(-3deg)' },
+                            '100%': { transform: 'scale(1) rotate(0)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        .card {
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .option {
+            transition: all 0.2s ease;
+        }
+        
+        .option:hover {
+            transform: scale(1.02);
+        }
+        
+        .option.correct {
+            background-color: #10B981;
+            color: white;
+        }
+        
+        .option.incorrect {
+            background-color: #EF4444;
+            color: white;
+        }
+        
+        .progress-bar {
+            transition: width 1s ease;
+        }
+        
+        .badge {
+            transition: all 0.3s ease;
+        }
+        
+        .badge:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: fall 3s ease-in-out;
+            z-index: 1000;
+        }
+        
+        @keyframes fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .dark {
+            color-scheme: dark;
+        }
+
+        .dark .card {
+            background-color: theme('colors.dark.card');
+            color: theme('colors.dark.text');
+        }
+
+        .dark .bg-light-bg {
+            background-color: theme('colors.dark.bg');
+        }
+
+        .dark .text-light-text {
+            color: theme('colors.dark.text');
+        }
+
+        .shine {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shine::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.3) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: rotate(30deg);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% {
+                transform: translateX(-100%) rotate(30deg);
+            }
+            20%, 100% {
+                transform: translateX(100%) rotate(30deg);
+            }
+        }
+
+        /* Fixed flip animation for cards - just 180 degrees */
+        .flip-card {
+            perspective: 1000px;
+        }
+
+        .flip-card-inner {
+            transition: transform 0.7s;
+            transform-style: preserve-3d;
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            backface-visibility: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .flip-card-front {
+            z-index: 2;
+        }
+
+        .flip-card-back {
+            transform: rotateY(180deg);
+        }
+
+        /* Pulsating creator banner */
+        .creator-banner {
+            animation: pulse 2s infinite;
+            background: linear-gradient(135deg, #5d5cde, #f97316);
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(93, 92, 222, 0.4);
+            }
+            70% {
+                transform: scale(1.03);
+                box-shadow: 0 0 0 10px rgba(93, 92, 222, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(93, 92, 222, 0);
+            }
+        }
+
+        /* Shake animation for wrong answers */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        .shake {
+            animation: shake 0.5s;
+        }
+
+        /* For screenshot functionality */
+        .screenshot-wrapper {
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(90deg, #5D5CDE, #F97316, #EF4444, #10B981, #5D5CDE);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient 10s linear infinite;
+        }
+        
+        @keyframes gradient {
+            0% {
+                background-position: 0% center;
+            }
+            100% {
+                background-position: 200% center;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light-bg text-light-text min-h-screen">
+    <div id="app-container" class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header with Subtle Pulsating Banner -->
+        <header class="text-center mb-8">
+            <div class="mb-4 flex justify-center">
+                <div class="creator-banner w-auto inline-flex items-center px-4 py-2 rounded-lg shadow-md">
+                    <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center mr-2">
+                        <i class="fas fa-book-reader text-primary"></i>
+                    </div>
+                    <p class="text-white text-sm font-medium">Created by your favourite teacher Ruairi</p>
+                </div>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-bold gradient-text mb-2">Idioms Quiz Game</h1>
+            <p class="text-gray-600 dark:text-gray-400">Learn idioms in a fun and interactive way!</p>
+        </header>
+
+        <!-- Main Content Area -->
+        <main id="main-content" class="flex flex-col items-center justify-center">
+            <!-- Home Screen (default view) -->
+            <div id="home-screen" class="w-full">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Start Quiz Card -->
+                    <div class="card bg-white dark:bg-dark-card rounded-xl shadow-lg p-6 flex flex-col items-center justify-center hover:shadow-xl transition-all">
+                        <div class="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center mb-4">
+                            <i class="fas fa-play text-2xl"></i>
+                        </div>
+                        <h2 class="text-xl font-bold mb-2">Start Quiz</h2>
+                        <p class="text-center text-gray-600 dark:text-gray-400 mb-4">Test your knowledge of common idioms with different quiz modes.</p>
+                        <button id="start-quiz-btn" class="w-full py-3 bg-primary text-white rounded-lg font-medium hover:bg-opacity-90 transition">Start Quiz</button>
+                    </div>
+
+                    <!-- View Leaderboard Card -->
+                    <div class="card bg-white dark:bg-dark-card rounded-xl shadow-lg p-6 flex flex-col items-center justify-center hover:shadow-xl transition-all">
+                        <div class="w-16 h-16 rounded-full bg-secondary text-white flex items-center justify-center mb-4">
+                            <i class="fas fa-trophy text-2xl"></i>
+                        </div>
+                        <h2 class="text-xl font-bold mb-2">Leaderboard</h2>
+                        <p class="text-center text-gray-600 dark:text-gray-400 mb-4">See how you rank compared to previous attempts.</p>
+                        <button id="leaderboard-btn" class="w-full py-3 bg-secondary text-white rounded-lg font-medium hover:bg-opacity-90 transition">View Leaderboard</button>
+                    </div>
+
+                    <!-- Review Learned Idioms Card -->
+                    <div class="card bg-white dark:bg-dark-card rounded-xl shadow-lg p-6 flex flex-col items-center justify-center hover:shadow-xl transition-all">
+                        <div class="w-16 h-16 rounded-full bg-green-500 text-white flex items-center justify-center mb-4">
+                            <i class="fas fa-book text-2xl"></i>
+                        </div>
+                        <h2 class="text-xl font-bold mb-2">Review Idioms</h2>
+                        <p class="text-center text-gray-600 dark:text-gray-400 mb-4">Review all the idioms you've learned so far.</p>
+                        <button id="review-idioms-btn" class="w-full py-3 bg-green-500 text-white rounded-lg font-medium hover:bg-opacity-90 transition">Review Idioms</button>
+                    </div>
+
+                    <!-- Random Idiom Card -->
+                    <div class="card bg-white dark:bg-dark-card rounded-xl shadow-lg p-6 flex flex-col items-center justify-center hover:shadow-xl transition-all shine">
+                        <div class="w-16 h-16 rounded-full bg-purple-500 text-white flex items-center justify-center mb-4">
+                            <i class="fas fa-random text-2xl"></i>
+                        </div>
+                        <h2 class="text-xl font-bold mb-2">Random Idiom</h2>
+                        <p class="text-center text-gray-600 dark:text-gray-400 mb-4">Learn a new random idiom each time.</p>
+                        <button id="random-idiom-btn" class="w-full py-3 bg-purple-500 text-white rounded-lg font-medium hover:bg-opacity-90 transition">Get Random Idiom</button>
+                    </div>
+                </div>
+
+                <!-- Stats Preview -->
+                <div id="stats-preview" class="mt-8 bg-white dark:bg-dark-card rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold mb-4">Your Progress</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="text-center p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                            <p class="text-blue-800 dark:text-blue-200 text-sm">Idioms Learned</p>
+                            <p id="idioms-learned-count" class="text-2xl font-bold text-blue-600 dark:text-blue-300">0</p>
+                        </div>
+                        <div class="text-center p-3 bg-green-100 dark:bg-green-900 rounded-lg">
+                            <p class="text-green-800 dark:text-green-200 text-sm">Total Points</p>
+                            <p id="total-points-count" class="text-2xl font-bold text-green-600 dark:text-green-300">0</p>
+                        </div>
+                        <div class="text-center p-3 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                            <p class="text-purple-800 dark:text-purple-200 text-sm">Quizzes Completed</p>
+                            <p id="quizzes-completed-count" class="text-2xl font-bold text-purple-600 dark:text-purple-300">0</p>
+                        </div>
+                        <div class="text-center p-3 bg-red-100 dark:bg-red-900 rounded-lg">
+                            <p class="text-red-800 dark:text-red-200 text-sm">Current Streak</p>
+                            <p id="current-streak-count" class="text-2xl font-bold text-red-600 dark:text-red-300">0</p>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <h3 class="text-lg font-semibold mb-2">Badges Earned</h3>
+                        <div id="badges-container" class="flex flex-wrap gap-2">
+                            <!-- Badges will be added here dynamically -->
+                        </div>
+                    </div>
+                    <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <button id="reset-progress-btn" class="w-full sm:w-auto px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-opacity-90 transition">Reset Progress</button>
+                        <button id="download-progress-btn" class="w-full sm:w-auto px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-opacity-90 transition">Screenshot Progress</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Selection Screen -->
+            <div id="quiz-selection-screen" class="w-full hidden">
+                <h2 class="text-2xl font-bold mb-4 text-center">Choose Quiz Mode</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Multiple Choice -->
+                    <div class="card bg-white dark:bg-dark-card rounded-xl shadow-lg p-6 flex flex-col items-center justify-center hover:shadow-xl transition-all">
+                        <div class="w-16 h-16 rounded-full bg-blue-500 text-white flex items-center justify-center mb-4">
+                            <i class="fas fa-list-ul text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Multiple Choice</h3>
+                        <p class="text-center text-gray-600 dark:text-gray-400 mb-4">Choose the correct definition from four options.</p>
+                        <div class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                            <i class="fas fa-star text-yellow-400"></i> Points: 10 per correct answer
+                        </div>
+                        <button data-mode="multiple-choice" class="start-mode-btn w-full py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-opacity-90 transition">Start</button>
+                    </div>
+
+                    <!-- True/False -->
+                    <div class="card bg-white dark:bg-dark-card rounded-xl shadow-lg p-6 flex flex-col items-center justify-center hover:shadow-xl transition-all">
+                        <div class="w-16 h-16 rounded-full bg-green-500 text-white flex items-center justify-center mb-4">
+                            <i class="fas fa-check-circle text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">True or False</h3>
+                        <p class="text-center text-gray-600 dark:text-gray-400 mb-4">Decide if the statement is correct or incorrect.</p>
+                        <div class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                            <i class="fas fa-star text-yellow-400"></i> Points: 5 per correct answer
+                        </div>
+						<p class="text-xl font-bold mb-2">UNDER MAINTAINCE</p>
+                        <!--  <button data-mode="true-false" class="start-mode-btn w-full py-3 bg-green-500 text-white rounded-lg font-medium hover:bg-opacity-90 transition">Start</button>  -->
+                    </div>
+
+                    <!-- Fill in the Blank -->
+                    <div class="card bg-white dark:bg-dark-card rounded-xl shadow-lg p-6 flex flex-col items-center justify-center hover:shadow-xl transition-all">
+                        <div class="w-16 h-16 rounded-full bg-purple-500 text-white flex items-center justify-center mb-4">
+                            <i class="fas fa-keyboard text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Fill in the Blank</h3>
+                        <p class="text-center text-gray-600 dark:text-gray-400 mb-4">Type the correct idiom to complete the sentence.</p>
+                        <div class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                            <i class="fas fa-star text-yellow-400"></i> Points: 15 per correct answer
+                        </div>
+						<p class="text-xl font-bold mb-2">UNDER MAINTAINCE</p>
+                        <!--  <button data-mode="fill-blank" class="start-mode-btn w-full py-3 bg-purple-500 text-white rounded-lg font-medium hover:bg-opacity-90 transition">Start</button>  -->
+                    </div>
+                </div>
+                <div class="mt-8 text-center">
+                    <button id="back-to-home-from-selection" class="px-6 py-2 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-opacity-90 transition">Back to Home</button>
+                </div>
+            </div>
+
+            <!-- Quiz Screen -->
+            <div id="quiz-screen" class="w-full hidden">
+                <!-- Quiz Header -->
+                <div class="flex justify-between items-center mb-4">
+                    <div class="quiz-info">
+                        <h2 id="quiz-mode-title" class="text-xl font-bold">Multiple Choice</h2>
+                        <p id="quiz-progress" class="text-sm text-gray-600 dark:text-gray-400">Question 1 of 10</p>
+                    </div>
+                    <div class="quiz-score">
+                        <p class="text-lg font-semibold"><span id="current-score">0</span> points</p>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full mb-6">
+                    <div id="quiz-progress-bar" class="progress-bar h-full bg-primary rounded-full" style="width: 10%;"></div>
+                </div>
+
+                <!-- Question Card -->
+                <div class="card bg-white dark:bg-dark-card rounded-xl shadow-lg p-6 mb-6">
+                    <h3 id="question-text" class="text-xl font-bold mb-4">What does "break the ice" mean?</h3>
+                    
+                    <!-- Multiple Choice Options -->
+                    <div id="multiple-choice-container" class="space-y-3">
+                        <!-- Options will be generated dynamically -->
+                    </div>
+
+                    <!-- True/False Options -->
+                    <div id="true-false-container" class="grid grid-cols-2 gap-4 hidden">
+                        <button class="option true-false-option py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-center hover:bg-gray-100 dark:hover:bg-gray-700 transition" data-value="true">True</button>
+                        <button class="option true-false-option py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-center hover:bg-gray-100 dark:hover:bg-gray-700 transition" data-value="false">False</button>
+                    </div>
+
+                    <!-- Fill in the Blank -->
+                    <div id="fill-blank-container" class="hidden">
+                        <div class="text-lg mb-3" id="fill-blank-sentence">
+                            To start a conversation that helps people feel comfortable, you need to _________.
+                        </div>
+                        <div class="flex items-center">
+                            <input id="fill-blank-input" type="text" class="w-full py-3 px-4 border border-gray-300 dark:border-gray-600 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Type your answer here...">
+                            <button id="fill-blank-submit" class="ml-2 px-4 py-3 bg-primary text-white rounded-lg font-medium hover:bg-opacity-90 transition">Submit</button>
+                        </div>
+                        <p id="fill-blank-hint" class="mt-2 text-gray-600 dark:text-gray-400 hidden">Hint: First letter is <span id="hint-letter">b</span></p>
+                        <button id="show-hint-btn" class="mt-3 text-sm text-primary hover:underline">Show hint (costs 2 points)</button>
+                    </div>
+                </div>
+
+                <!-- Feedback Card (shows after answering) -->
+                <div id="feedback-card" class="card bg-white dark:bg-dark-card rounded-xl shadow-lg p-6 mb-6 hidden">
+                    <div id="feedback-correct" class="hidden">
+                        <div class="text-green-500 text-xl font-bold mb-2 flex items-center">
+                            <i class="fas fa-check-circle mr-2"></i> Correct!
+                        </div>
+                        <p id="feedback-explanation" class="text-gray-700 dark:text-gray-300 mb-4">
+                            Great job! "Break the ice" means to start a conversation or activity that helps people feel comfortable.
+                        </p>
+                    </div>
+                    <div id="feedback-incorrect" class="hidden">
+                        <div class="text-red-500 text-xl font-bold mb-2 flex items-center">
+                            <i class="fas fa-times-circle mr-2"></i> Incorrect
+                        </div>
+                        <p id="feedback-correction" class="text-gray-700 dark:text-gray-300 mb-4">
+                            The correct answer is: "To start a conversation or activity that helps people feel comfortable."
+                        </p>
+                    </div>
+                    <div id="idiom-examples" class="mt-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                        <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Examples:</p>
+                        <p id="example-1" class="text-sm text-gray-600 dark:text-gray-400 mb-1">• At the start of the meeting, the manager told a funny story to break the ice.</p>
+                        <p id="example-2" class="text-sm text-gray-600 dark:text-gray-400">• Playing a quick game is a great way to break the ice when meeting new people.</p>
+                    </div>
+                    <button id="next-question-btn" class="mt-4 w-full py-3 bg-primary text-white rounded-lg font-medium hover:bg-opacity-90 transition">Next Question</button>
+                </div>
+
+                <!-- Quiz Controls -->
+                <div class="flex justify-between">
+                    <button id="quit-quiz-btn" class="px-6 py-2 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-opacity-90 transition">Quit Quiz</button>
+                </div>
+            </div>
+
+            <!-- Quiz Results Screen -->
+            <div id="quiz-results-screen" class="w-full hidden">
+                <div class="card bg-white dark:bg-dark-card rounded-xl shadow-lg p-6 mb-6">
+                    <div class="text-center mb-6">
+                        <h2 class="text-2xl font-bold mb-2">Quiz Complete!</h2>
+                        <p class="text-gray-600 dark:text-gray-400">Great job on completing the quiz!</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="text-center p-4 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                            <p class="text-blue-800 dark:text-blue-200 text-sm">Your Score</p>
+                            <p id="final-score" class="text-3xl font-bold text-blue-600 dark:text-blue-300">75</p>
+                        </div>
+                        <div class="text-center p-4 bg-green-100 dark:bg-green-900 rounded-lg">
+                            <p class="text-green-800 dark:text-green-200 text-sm">Correct Answers</p>
+                            <p id="correct-answers" class="text-3xl font-bold text-green-600 dark:text-green-300">7/10</p>
+                        </div>
+                        <div class="text-center p-4 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                            <p class="text-purple-800 dark:text-purple-200 text-sm">New Idioms Learned</p>
+                            <p id="new-idioms-learned" class="text-3xl font-bold text-purple-600 dark:text-purple-300">5</p>
+                        </div>
+                    </div>
+                    
+                    <div id="achievement-unlocked" class="hidden mb-6 p-4 bg-yellow-100 dark:bg-yellow-900 rounded-lg text-center animate-tada">
+                        <div class="text-yellow-800 dark:text-yellow-200 font-bold">Achievement Unlocked!</div>
+                        <p id="achievement-text" class="text-yellow-700 dark:text-yellow-300">Completed 5 Quizzes</p>
+                    </div>
+                    
+                    <div id="screenshot-area" class="screenshot-wrapper p-6 bg-gray-100 dark:bg-gray-800 rounded-lg mb-6">
+                        <div class="text-center mb-4">
+                            <h3 class="text-xl font-semibold">Progress Certificate</h3>
+                            <p class="text-gray-600 dark:text-gray-400">Share your accomplishment!</p>
+                        </div>
+                        <div class="border-4 border-dashed border-gray-300 dark:border-gray-600 p-4 rounded-lg">
+                            <div class="text-center">
+                                <div class="text-primary font-bold text-lg mb-1">Idioms Quiz Game</div>
+                                <p class="text-gray-700 dark:text-gray-300"><span id="cert-name">Student</span> has learned <span id="cert-idioms-count">5</span> idioms!</p>
+                                <p class="mt-2 text-gray-600 dark:text-gray-400">Total points: <span id="cert-points">75</span></p>
+                                <p class="text-gray-500 dark:text-gray-500 text-sm mt-2">Date: <span id="cert-date">October 12, 2023</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col md:flex-row gap-3 justify-between">
+                        <button id="back-to-home-btn" class="py-3 px-6 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-opacity-90 transition">Back to Home</button>
+                        <button id="try-different-mode-btn" class="py-3 px-6 bg-secondary text-white rounded-lg font-medium hover:bg-opacity-90 transition">Try Different Mode</button>
+                        <button id="take-screenshot-btn" class="py-3 px-6 bg-primary text-white rounded-lg font-medium hover:bg-opacity-90 transition">Take Screenshot</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leaderboard Screen -->
+            <div id="leaderboard-screen" class="w-full hidden">
+                <div class="card bg-white dark:bg-dark-card rounded-xl shadow-lg p-6 mb-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold">Leaderboard</h2>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Your best score: <span id="your-best-score" class="font-semibold">0</span></p>
+                        </div>
+                    </div>
+                    
+                    <div id="leaderboard-empty" class="text-center py-8 hidden">
+                        <i class="fas fa-trophy text-gray-300 dark:text-gray-700 text-5xl mb-3"></i>
+                        <p class="text-gray-500 dark:text-gray-400">No scores yet. Complete a quiz to see your ranking!</p>
+                    </div>
+                    
+                    <div id="leaderboard-container" class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead>
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rank</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Mode</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Score</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Idioms</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboard-body" class="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-gray-700">
+                                <!-- Leaderboard entries will be added here dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="mt-6 text-center">
+                        <button id="back-from-leaderboard-btn" class="px-6 py-2 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-opacity-90 transition">Back to Home</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review Idioms Screen -->
+            <div id="review-idioms-screen" class="w-full hidden">
+                <div class="card bg-white dark:bg-dark-card rounded-xl shadow-lg p-6 mb-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold">Idioms You've Learned</h2>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Total: <span id="total-idioms-learned" class="font-semibold">0</span></p>
+                        </div>
+                    </div>
+                    
+                    <div id="review-empty" class="text-center py-8 hidden">
+                        <i class="fas fa-book text-gray-300 dark:text-gray-700 text-5xl mb-3"></i>
+                        <p class="text-gray-500 dark:text-gray-400">You haven't learned any idioms yet. Complete a quiz to start learning!</p>
+                    </div>
+                    
+                    <div id="idioms-container" class="grid grid-cols-1 gap-4">
+                        <!-- Idiom cards will be added here dynamically -->
+                    </div>
+                    
+                    <div class="mt-6 text-center">
+                        <button id="back-from-review-btn" class="px-6 py-2 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-opacity-90 transition">Back to Home</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Random Idiom Screen -->
+            <div id="random-idiom-screen" class="w-full hidden">
+                <div class="flip-card card bg-white dark:bg-dark-card rounded-xl shadow-lg p-6 mb-6">
+                    <div class="flip-card-inner relative w-full h-full min-h-[300px]">
+                        <div class="flip-card-front w-full h-full flex flex-col items-center justify-center p-6">
+                            <div class="text-center mb-6">
+                                <div class="mb-4">
+                                    <span class="inline-block px-3 py-1 text-sm bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-full">Random Idiom</span>
+                                </div>
+                                <h2 id="random-idiom-text" class="text-2xl font-bold mb-3">Break the ice</h2>
+                                <p class="text-gray-600 dark:text-gray-400">Click the card to learn the meaning</p>
+                            </div>
+                            <div class="text-center mt-4">
+                                <button id="flip-random-idiom" class="px-6 py-2 bg-purple-500 text-white rounded-lg font-medium hover:bg-opacity-90 transition">Reveal Meaning</button>
+                            </div>
+                        </div>
+                        <div class="flip-card-back w-full h-full bg-white dark:bg-dark-card rounded-xl p-6 flex flex-col items-center justify-center">
+                            <div class="text-center mb-4">
+                                <h3 id="random-idiom-title" class="text-xl font-bold mb-1">Break the ice</h3>
+                                <div class="mb-4">
+                                    <span class="inline-block px-3 py-1 text-sm bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full">Definition</span>
+                                </div>
+                            </div>
+                            <p id="random-idiom-definition" class="text-gray-700 dark:text-gray-300 mb-4">
+                                To start a conversation or activity that helps people feel more comfortable and less awkward in a social situation.
+                            </p>
+                            <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-4 w-full">
+                                <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Examples:</p>
+                                <p id="random-example-1" class="text-sm text-gray-600 dark:text-gray-400 mb-1">• At the start of the meeting, the manager told a funny story to break the ice.</p>
+                                <p id="random-example-2" class="text-sm text-gray-600 dark:text-gray-400">• Playing a quick game is a great way to break the ice when meeting new people.</p>
+                            </div>
+                            <div class="text-center mt-4">
+                                <button id="mark-learned-btn" class="px-6 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-opacity-90 transition mr-2">Mark as Learned (+5 points)</button>
+                                <button id="get-new-random-btn" class="px-6 py-2 bg-purple-500 text-white rounded-lg font-medium hover:bg-opacity-90 transition mr-2">Get New Idiom</button>
+                                <button id="flip-back-btn" class="px-6 py-2 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-opacity-90 transition">Flip Back</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button id="back-from-random-btn" class="px-6 py-2 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-opacity-90 transition">Back to Home</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Reset Progress Confirmation Modal -->
+        <div id="reset-modal" class="fixed inset-0 hidden bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white dark:bg-dark-card rounded-xl p-6 max-w-md mx-auto">
+                <h3 class="text-xl font-bold mb-4">Reset Progress?</h3>
+                <p class="text-gray-700 dark:text-gray-300 mb-6">This will delete all your progress, scores, and learned idioms. This action cannot be undone.</p>
+                <div class="flex justify-end gap-4">
+                    <button id="cancel-reset-btn" class="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-opacity-90 transition">Cancel</button>
+                    <button id="confirm-reset-btn" class="px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-opacity-90 transition">Reset All Data</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Toast -->
+        <div id="notification-toast" class="fixed bottom-4 right-4 bg-white dark:bg-dark-card rounded-lg shadow-lg p-4 transform translate-y-10 opacity-0 transition-all duration-300 hidden z-50">
+            <div class="flex items-center">
+                <div id="notification-icon" class="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center mr-3">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div>
+                    <h4 id="notification-title" class="font-medium text-gray-800 dark:text-gray-200">Success!</h4>
+                    <p id="notification-message" class="text-sm text-gray-600 dark:text-gray-400">Your progress has been saved.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize dark mode based on user preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // All idioms data
+        const idiomsData = [
+            {
+                idiom: "Break the ice",
+                definition: "To start a conversation or activity that helps people feel more comfortable and less awkward in a social situation. This is often done at the beginning of a meeting, party, or class.",
+                examples: [
+                    "At the start of the meeting, the manager told a funny story to break the ice and make everyone feel at ease.",
+                    "Playing a quick game is a great way to break the ice when meeting new people."
+                ]
+            },
+            {
+                idiom: "Hit the nail on the head",
+                definition: "To say or do something that is exactly right or perfectly explains a situation.",
+                examples: [
+                    "When Sarah said the team needed better communication, she hit the nail on the head.",
+                    "The teacher hit the nail on the head when she pointed out why the students were struggling with the assignment."
+                ]
+            },
+            {
+                idiom: "A blessing in disguise",
+                definition: "Something that seems bad or unlucky at first but turns out to be good or beneficial in the end.",
+                examples: [
+                    "Losing his job was a blessing in disguise because it gave him the chance to start his own business.",
+                    "Missing the train was a blessing in disguise since the next one was much faster."
+                ]
+            },
+            {
+                idiom: "Burn the midnight oil",
+                definition: "To stay awake late into the night working on something, usually studying or completing a task.",
+                examples: [
+                    "She had to burn the midnight oil to finish her research paper before the deadline.",
+                    "The team burned the midnight oil to prepare for the big presentation."
+                ]
+            },
+            {
+                idiom: "Spill the beans",
+                definition: "To accidentally or intentionally reveal a secret or surprise before it's supposed to be known.",
+                examples: [
+                    "Don't tell Mark about the party plans. He's likely to spill the beans!",
+                    "She spilled the beans about her sister's engagement before it was officially announced."
+                ]
+            },
+            {
+                idiom: "Bite the bullet",
+                definition: "To force yourself to do something unpleasant or difficult because it's necessary.",
+                examples: [
+                    "I hate going to the dentist, but I'll have to bite the bullet and make an appointment.",
+                    "He didn't want to apologize, but he bit the bullet and admitted he was wrong."
+                ]
+            },
+            {
+                idiom: "Call it a day",
+                definition: "To decide to stop working on something, usually because you've done enough for the day or reached your limit.",
+                examples: [
+                    "We've been working on this project for hours--let's call it a day and continue tomorrow.",
+                    "After finishing the report, she decided to call it a day and relax at home."
+                ]
+            },
+            {
+                idiom: "Couch potato",
+                definition: "A person who spends a lot of time sitting or lying down, usually watching TV or doing something inactive.",
+                examples: [
+                    "On weekends, he turns into a couch potato and watches TV all day.",
+                    "Don't be such a couch potato--go outside and enjoy the fresh air!"
+                ]
+            },
+            {
+                idiom: "Kick the bucket",
+                definition: "A humorous or informal way of saying that someone has died.",
+                examples: [
+                    "The old man finally kicked the bucket after living a long and happy life.",
+                    "That plant is so dry, it looks like it's about to kick the bucket."
+                ]
+            },
+            {
+                idiom: "Piece of cake",
+                definition: "Something that is very easy to do or accomplish.",
+                examples: [
+                    "The test was a piece of cake because I had studied so much.",
+                    "Fixing the leaky faucet was a piece of cake for the plumber."
+                ]
+            },
+            {
+                idiom: "Let the cat out of the bag",
+                definition: "To reveal a secret or surprise, often by accident, before it was meant to be known.",
+                examples: [
+                    "He let the cat out of the bag about the surprise party when he mentioned it in front of Sarah.",
+                    "Don't let the cat out of the bag about the promotion until it's official."
+                ]
+            },
+            {
+                idiom: "Raining cats and dogs",
+                definition: "To rain very heavily and intensely. This phrase is often used when there's a storm or strong rain.",
+                examples: [
+                    "It was raining cats and dogs, so we decided to stay indoors instead of going to the park.",
+                    "Don't forget your umbrella--it's supposed to rain cats and dogs later today."
+                ]
+            },
+            {
+                idiom: "Under the weather",
+                definition: "To feel sick or unwell, either physically or emotionally.",
+                examples: [
+                    "I think I'll stay home today--I'm feeling a bit under the weather.",
+                    "She was under the weather all week, so she missed the meeting."
+                ]
+            },
+            {
+                idiom: "Cost an arm and a leg",
+                definition: "To be very expensive or cost much more than expected.",
+                examples: [
+                    "That new smartphone costs an arm and a leg, but he bought it anyway.",
+                    "They wanted to go to the concert, but the tickets cost an arm and a leg."
+                ]
+            },
+            {
+                idiom: "Kill two birds with one stone",
+                definition: "To achieve two things at the same time with one action.",
+                examples: [
+                    "By biking to work, I kill two birds with one stone--I save money and get exercise.",
+                    "She managed to kill two birds with one stone by cooking dinner while helping her kids with homework."
+                ]
+            },
+            {
+                idiom: "Add fuel to the fire",
+                definition: "To make a bad situation even worse by saying or doing something that worsens the problem.",
+                examples: [
+                    "He added fuel to the fire by yelling back at the angry customer.",
+                    "Don't argue with her--it will only add fuel to the fire."
+                ]
+            },
+            {
+                idiom: "Actions speak louder than words",
+                definition: "What someone does is more important and meaningful than what they say.",
+                examples: [
+                    "He says he'll help, but actions speak louder than words--I want to see him actually do something.",
+                    "Actions speak louder than words, so show your love by spending time with her, not just saying it."
+                ]
+            },
+            {
+                idiom: "Barking up the wrong tree",
+                definition: "To pursue the wrong solution or make a false assumption about something or someone.",
+                examples: [
+                    "If you think I'm the one who broke the vase, you're barking up the wrong tree.",
+                    "He's barking up the wrong tree if he thinks more meetings will solve the problem."
+                ]
+            },
+            {
+                idiom: "Curiosity killed the cat",
+                definition: "Being overly curious or nosy can lead to trouble or problems.",
+                examples: [
+                    "Don't open that box without asking--curiosity killed the cat!",
+                    "She kept asking too many questions and got herself into trouble. Curiosity killed the cat!"
+                ]
+            },
+            {
+                idiom: "Beat around the bush",
+                definition: "To avoid saying something directly, often because it's uncomfortable or unpleasant to discuss.",
+                examples: [
+                    "Stop beating around the bush and tell me what you really think about my idea.",
+                    "The manager beat around the bush instead of explaining why the project was delayed."
+                ]
+            },
+            {
+                idiom: "A dime a dozen",
+                definition: "Something that is very common and not particularly special or valuable.",
+                examples: [
+                    "In this city, coffee shops are a dime a dozen--you'll find one on every corner.",
+                    "Cheap souvenirs are a dime a dozen in tourist areas."
+                ]
+            },
+            {
+                idiom: "Bite off more than you can chew",
+                definition: "To take on more responsibility or work than you can handle.",
+                examples: [
+                    "He bit off more than he could chew by agreeing to finish the project in one week.",
+                    "Don't bite off more than you can chew--focus on one task at a time."
+                ]
+            },
+            {
+                idiom: "Burn bridges",
+                definition: "To damage or end a relationship in a way that makes it impossible to go back.",
+                examples: [
+                    "Be polite when quitting your job--you don't want to burn bridges.",
+                    "She burned her bridges with her former friends by spreading rumors about them."
+                ]
+            },
+            {
+                idiom: "Cry over spilled milk",
+                definition: "To waste time worrying about something that has already happened and can't be changed.",
+                examples: [
+                    "There's no use crying over spilled milk--just clean it up and move on.",
+                    "He was upset about failing the test, but I told him not to cry over spilled milk."
+                ]
+            },
+            {
+                idiom: "Cut corners",
+                definition: "To do something in a faster or cheaper way that often sacrifices quality.",
+                examples: [
+                    "The contractor cut corners while building the house, and now it's full of problems.",
+                    "Don't cut corners on this assignment--it's important to do it properly."
+                ]
+            },
+            {
+                idiom: "Devil's advocate",
+                definition: "Someone who argues against an idea for the sake of debate or to challenge the idea, even if they don't necessarily believe it.",
+                examples: [
+                    "I played devil's advocate to help my friend think about the risks of her plan.",
+                    "The teacher often acts as the devil's advocate to encourage critical thinking."
+                ]
+            },
+            {
+                idiom: "Hit the sack",
+                definition: "To go to bed and sleep.",
+                examples: [
+                    "I'm really tired, so I'm going to hit the sack early tonight.",
+                    "After a long day at work, he couldn't wait to hit the sack."
+                ]
+            },
+            {
+                idiom: "Keep your chin up",
+                definition: "To remain positive and optimistic, even during difficult times.",
+                examples: [
+                    "I know things are tough right now, but keep your chin up--it will get better.",
+                    "She kept her chin up despite the challenges she faced at work."
+                ]
+            },
+            {
+                idiom: "Let sleeping dogs lie",
+                definition: "To avoid bringing up an issue or problem because it might cause trouble or reopen old wounds.",
+                examples: [
+                    "We decided to let sleeping dogs lie and not mention the argument again.",
+                    "Don't ask about his past mistakes--let sleeping dogs lie."
+                ]
+            },
+            {
+                idiom: "On the ball",
+                definition: "To be alert, efficient, and quick to react to a situation.",
+                examples: [
+                    "The new assistant is really on the ball--she finishes tasks before I even ask.",
+                    "If you want to succeed in this class, you'll need to stay on the ball."
+                ]
+            },
+            {
+                idiom: "Pull someone's leg",
+                definition: "To joke or tease someone in a playful way.",
+                examples: [
+                    "I thought he was serious, but he was just pulling my leg about winning the lottery.",
+                    "Stop pulling my leg--I know you didn't really meet a celebrity!"
+                ]
+            },
+            {
+                idiom: "The elephant in the room",
+                definition: "A big issue or problem that everyone is aware of but avoids discussing because it's uncomfortable.",
+                examples: [
+                    "During the meeting, no one mentioned the elephant in the room--the company's financial troubles.",
+                    "The argument at dinner was the elephant in the room, and no one wanted to bring it up."
+                ]
+            },
+            {
+                idiom: "Throw in the towel",
+                definition: "To give up or admit defeat.",
+                examples: [
+                    "After trying to fix the car all day, he finally threw in the towel and called a mechanic.",
+                    "She was about to throw in the towel, but her friend encouraged her to keep going."
+                ]
+            },
+            {
+                idiom: "Take with a grain of salt",
+                definition: "To view something with skepticism or to not take it too seriously.",
+                examples: [
+                    "The reviews were great, but I took them with a grain of salt because the website is biased.",
+                    "When he told me the story, I took it with a grain of salt since he often exaggerates."
+                ]
+            },
+            {
+                idiom: "Once in a blue moon",
+                definition: "Something that happens very rarely.",
+                examples: [
+                    "We only get together with our old classmates once in a blue moon.",
+                    "He eats fast food once in a blue moon because he prefers cooking at home."
+                ]
+            },
+            {
+                idiom: "The best of both worlds",
+                definition: "A situation where you can enjoy the advantages of two different things at the same time.",
+                examples: [
+                    "Working from home gives her the best of both worlds--flexibility and more time with family.",
+                    "This hybrid car offers the best of both worlds: efficiency and comfort."
+                ]
+            },
+            {
+                idiom: "Speak of the devil",
+                definition: "Said when someone you were just talking about appears unexpectedly.",
+                examples: [
+                    "Speak of the devil--there's John! We were just talking about him.",
+                    "I was about to call her, and then she walked in. Speak of the devil!"
+                ]
+            },
+            {
+                idiom: "Time flies",
+                definition: "A phrase used to express how quickly time passes, especially when you're busy or having fun.",
+                examples: [
+                    "Time flies when you're having a good time at a party.",
+                    "I can't believe it's already December--time really flies!"
+                ]
+            },
+            {
+                idiom: "Hit the ground running",
+                definition: "To start something with energy and enthusiasm, often achieving immediate success.",
+                examples: [
+                    "She hit the ground running on her first day at the new job.",
+                    "The team hit the ground running with their new project and made great progress."
+                ]
+            },
+            {
+                idiom: "Go the extra mile",
+                definition: "To do more than is required or expected in order to achieve something.",
+                examples: [
+                    "The teacher went the extra mile to help her students succeed.",
+                    "He always goes the extra mile to ensure his customers are satisfied."
+                ]
+            },
+            {
+                idiom: "All ears",
+                definition: "To be fully listening and paying close attention to someone.",
+                examples: [
+                    "Tell me about your trip--I'm all ears!",
+                    "The students were all ears as the teacher explained the exciting project."
+                ]
+            },
+            {
+                idiom: "Cutting-edge",
+                definition: "Something that is advanced, innovative, or modern.",
+                examples: [
+                    "This new smartphone has cutting-edge technology that no other brand offers.",
+                    "The company is known for its cutting-edge designs in fashion."
+                ]
+            },
+            {
+                idiom: "Bite the dust",
+                definition: "To fail, lose, or die (used figuratively or literally).",
+                examples: [
+                    "Several businesses bit the dust during the economic recession.",
+                    "The old car finally bit the dust after years of use."
+                ]
+            },
+            {
+                idiom: "Keep your fingers crossed",
+                definition: "To hope that something will happen as you want it to.",
+                examples: [
+                    "I'm keeping my fingers crossed that I get the job.",
+                    "Keep your fingers crossed--it might not rain during the picnic."
+                ]
+            },
+            {
+                idiom: "A penny for your thoughts",
+                definition: "A way of asking someone what they are thinking, often when they look quiet or deep in thought.",
+                examples: [
+                    "You look serious. A penny for your thoughts?",
+                    "He stared out the window, so I asked, \"A penny for your thoughts?\""
+                ]
+            },
+            {
+                idiom: "Let bygones be bygones",
+                definition: "To forgive someone for past mistakes or arguments and move forward.",
+                examples: [
+                    "They decided to let bygones be bygones and became friends again.",
+                    "It's time to let bygones be bygones and stop holding grudges."
+                ]
+            },
+            {
+                idiom: "Wild goose chase",
+                definition: "A pointless or hopeless search for something that's difficult or impossible to find.",
+                examples: [
+                    "We went on a wild goose chase looking for a shop that doesn't exist.",
+                    "Searching for my lost keys in the park was a wild goose chase."
+                ]
+            },
+            {
+                idiom: "Burn the candle at both ends",
+                definition: "To overwork yourself by doing too many things, often staying up late and waking up early, which leads to exhaustion.",
+                examples: [
+                    "She's been burning the candle at both ends, working two jobs and studying at night.",
+                    "If you keep burning the candle at both ends, you'll eventually burn out."
+                ]
+            },
+            {
+                idiom: "Jump on the bandwagon",
+                definition: "To start doing something because it's popular or everyone else is doing it.",
+                examples: [
+                    "Everyone started wearing those shoes, so he jumped on the bandwagon and bought a pair too.",
+                    "She doesn't usually like trends, but she jumped on the bandwagon and joined the new fitness craze."
+                ]
+            },
+            {
+                idiom: "The last straw",
+                definition: "The final event or problem in a series that makes someone lose patience or give up.",
+                examples: [
+                    "When he arrived late again, it was the last straw--I had to fire him.",
+                    "The broken air conditioner was the last straw, so they moved out of the apartment."
+                ]
+            },
+            {
+                idiom: "Hit the jackpot",
+                definition: "To have great success or luck, often unexpectedly.",
+                examples: [
+                    "He hit the jackpot when he got a high-paying job right after graduating.",
+                    "They hit the jackpot by finding a rare painting at a garage sale."
+                ]
+            },
+            {
+                idiom: "In the same boat",
+                definition: "To be in the same difficult or challenging situation as someone else.",
+                examples: [
+                    "We're all in the same boat--no one has enough time to finish the project.",
+                    "After the company cut bonuses, the employees felt they were in the same boat."
+                ]
+            },
+            {
+                idiom: "Jump the gun",
+                definition: "To do something too soon or before the right time.",
+                examples: [
+                    "He jumped the gun by announcing the news before it was confirmed.",
+                    "Don't jump the gun and buy that car without comparing prices first."
+                ]
+            },
+            {
+                idiom: "Make a mountain out of a molehill",
+                definition: "To overreact or make a small problem seem much bigger than it is.",
+                examples: [
+                    "She made a mountain out of a molehill when she panicked about a tiny mistake in her report.",
+                    "It's just a scratch on the car--don't make a mountain out of a molehill."
+                ]
+            },
+            {
+                idiom: "Don't count your chickens before they hatch",
+                definition: "Don't assume something will happen or succeed before it actually does.",
+                examples: [
+                    "She was already planning how to spend her bonus, but I told her not to count her chickens before they hatch.",
+                    "Don't count your chickens before they hatch--you haven't passed the exam yet."
+                ]
+            },
+            {
+                idiom: "Steal someone's thunder",
+                definition: "To take credit or attention away from someone else's achievements or ideas.",
+                examples: [
+                    "She stole my thunder by announcing her own news right after my presentation.",
+                    "He felt like his boss stole his thunder by taking credit for his hard work."
+                ]
+            },
+            {
+                idiom: "Throw caution to the wind",
+                definition: "To take a risk or act carelessly without worrying about the consequences.",
+                examples: [
+                    "He threw caution to the wind and invested all his savings in a risky business.",
+                    "They threw caution to the wind and decided to travel without making plans."
+                ]
+            },
+            {
+                idiom: "The early bird catches the worm",
+                definition: "People who act quickly or arrive first are more likely to succeed.",
+                examples: [
+                    "She always wakes up early to study because she believes the early bird catches the worm.",
+                    "We got to the store early, and all the best deals were still available--the early bird catches the worm."
+                ]
+            },
+            {
+                idiom: "Keep your eyes peeled",
+                definition: "To stay alert and watch carefully for something.",
+                examples: [
+                    "Keep your eyes peeled for a parking spot while I drive around.",
+                    "She told us to keep our eyes peeled for any signs of wildlife during the hike."
+                ]
+            },
+            {
+                idiom: "A tough pill to swallow",
+                definition: "Something difficult to accept or deal with.",
+                examples: [
+                    "Losing the championship was a tough pill to swallow for the team.",
+                    "Hearing the criticism about her work was a tough pill to swallow."
+                ]
+            },
+            {
+                idiom: "Go back to the drawing board",
+                definition: "To start over and try a new plan after a previous attempt failed.",
+                examples: [
+                    "The prototype didn't work, so we had to go back to the drawing board.",
+                    "After the business proposal was rejected, they went back to the drawing board to make improvements."
+                ]
+            },
+            {
+                idiom: "A perfect storm",
+                definition: "A situation where a combination of factors creates the worst possible outcome.",
+                examples: [
+                    "The traffic, bad weather, and missed train created a perfect storm that made us late.",
+                    "The economic downturn and rising costs were a perfect storm for small businesses."
+                ]
+            },
+            {
+                idiom: "Bite the hand that feeds you",
+                definition: "To harm or criticize someone who is helping or supporting you.",
+                examples: [
+                    "Complaining about your parents' rules is like biting the hand that feeds you--they're providing for you.",
+                    "He bit the hand that feeds him by insulting his boss at the company party."
+                ]
+            },
+            {
+                idiom: "Every cloud has a silver lining",
+                definition: "Even bad situations have something positive or hopeful in them.",
+                examples: [
+                    "Losing his job was hard, but every cloud has a silver lining--he found a better one soon after.",
+                    "The rain ruined our picnic, but every cloud has a silver lining--we had fun playing board games indoors."
+                ]
+            },
+            {
+                idiom: "Pull out all the stops",
+                definition: "To do everything possible to achieve success or make something great.",
+                examples: [
+                    "They pulled out all the stops to make their wedding unforgettable.",
+                    "The team pulled out all the stops to finish the project before the deadline."
+                ]
+            },
+            {
+                idiom: "Get out of hand",
+                definition: "To become out of control or unmanageable.",
+                examples: [
+                    "The argument got out of hand when people started shouting.",
+                    "If you don't organize things now, the situation will get out of hand."
+                ]
+            },
+            {
+                idiom: "Play it by ear",
+                definition: "To handle a situation as it happens without making definite plans.",
+                examples: [
+                    "We don't have an itinerary for the trip--we'll just play it by ear.",
+                    "Instead of preparing a strict speech, I'll play it by ear and see how the audience reacts."
+                ]
+            },
+            {
+                idiom: "Skeleton in the closet",
+                definition: "A secret about someone's past that they don't want others to know.",
+                examples: [
+                    "He's running for office, so he hopes no one finds out about the skeleton in his closet.",
+                    "Everyone has a skeleton in their closet, but it's important to move on from the past."
+                ]
+            },
+            {
+                idiom: "A fish out of water",
+                definition: "Someone who feels uncomfortable or out of place in a particular situation.",
+                examples: [
+                    "At his first formal dinner party, he felt like a fish out of water.",
+                    "She was a fish out of water when she joined the advanced yoga class without any experience."
+                ]
+            },
+            {
+                idiom: "A penny saved is a penny earned",
+                definition: "Saving money is just as important as earning it.",
+                examples: [
+                    "I try not to spend too much because a penny saved is a penny earned.",
+                    "Instead of eating at a restaurant, I cooked at home--a penny saved is a penny earned."
+                ]
+            },
+            {
+                idiom: "Add insult to injury",
+                definition: "To make a bad situation worse by doing something else that's hurtful or unfair.",
+                examples: [
+                    "After losing the game, the team had to pay a fine, adding insult to injury.",
+                    "He was already late for work, and to add insult to injury, his car broke down."
+                ]
+            },
+            {
+                idiom: "All bark and no bite",
+                definition: "Someone who talks tough but doesn't follow through with their actions.",
+                examples: [
+                    "He threatens to quit all the time, but he's all bark and no bite.",
+                    "The dog looks scary, but he's all bark and no bite."
+                ]
+            },
+            {
+                idiom: "As cool as a cucumber",
+                definition: "Very calm and relaxed, even in a stressful situation.",
+                examples: [
+                    "Even during the emergency, she remained as cool as a cucumber and handled everything perfectly.",
+                    "He's always as cool as a cucumber, no matter how chaotic things get."
+                ]
+            },
+            {
+                idiom: "At the drop of a hat",
+                definition: "To do something immediately or without hesitation.",
+                examples: [
+                    "She's always ready to help her friends at the drop of a hat.",
+                    "If you need me, I'll come over at the drop of a hat."
+                ]
+            },
+            {
+                idiom: "Back to square one",
+                definition: "To start over from the beginning after a failed attempt.",
+                examples: [
+                    "The project didn't work out, so we're back to square one.",
+                    "After the experiment failed, they had to go back to square one and rethink their approach."
+                ]
+            },
+            {
+                idiom: "Beat a dead horse",
+                definition: "To waste time or effort on something that has already been decided or is no longer relevant.",
+                examples: [
+                    "There's no point in discussing it again--we're just beating a dead horse.",
+                    "Trying to convince her to change her mind is like beating a dead horse."
+                ]
+            },
+            {
+                idiom: "Best thing since sliced bread",
+                definition: "Something that is very innovative, useful, or exciting.",
+                examples: [
+                    "This new app is the best thing since sliced bread--it makes everything so much easier.",
+                    "He thought the electric car was the best thing since sliced bread when he bought one."
+                ]
+            },
+            {
+                idiom: "Between a rock and a hard place",
+                definition: "To be in a difficult situation where you have to choose between two bad options.",
+                examples: [
+                    "She's caught between a rock and a hard place--either quit her job or take a pay cut.",
+                    "The government is between a rock and a hard place: raise taxes or cut services."
+                ]
+            },
+            {
+                idiom: "Break the bank",
+                definition: "To spend all your money or more than you can afford.",
+                examples: [
+                    "A good vacation doesn't have to break the bank if you plan wisely.",
+                    "That handbag is nice, but it would break the bank to buy it."
+                ]
+            },
+            {
+                idiom: "By the skin of your teeth",
+                definition: "To barely succeed or narrowly escape failure.",
+                examples: [
+                    "He passed the exam by the skin of his teeth--it was a very close call.",
+                    "We caught the train by the skin of our teeth just as the doors were closing."
+                ]
+            },
+            {
+                idiom: "Close, but no cigar",
+                definition: "Almost succeeding but not quite making it.",
+                examples: [
+                    "He almost won the competition--close, but no cigar.",
+                    "They came close to finishing the project on time, but no cigar."
+                ]
+            },
+            {
+                idiom: "Cross that bridge when you come to it",
+                definition: "To deal with a problem or situation when it happens, rather than worrying about it beforehand.",
+                examples: [
+                    "Don't worry about the presentation now--we'll cross that bridge when we come to it.",
+                    "If we run out of money, we'll cross that bridge when we come to it."
+                ]
+            },
+            {
+                idiom: "Cut to the chase",
+                definition: "To get to the main point without wasting time.",
+                examples: [
+                    "We don't have much time, so let's cut to the chase and discuss the proposal.",
+                    "He wasted no time and cut to the chase during the meeting."
+                ]
+            },
+            {
+                idiom: "Don't put all your eggs in one basket",
+                definition: "Don't risk everything on one plan, idea, or investment--spread your options.",
+                examples: [
+                    "She invested in multiple stocks because she didn't want to put all her eggs in one basket.",
+                    "Don't rely on just one job application--don't put all your eggs in one basket."
+                ]
+            },
+            {
+                idiom: "Easier said than done",
+                definition: "Something that sounds simple in theory but is difficult to do in practice.",
+                examples: [
+                    "Quitting smoking is easier said than done.",
+                    "Starting your own business is easier said than done--it takes a lot of hard work."
+                ]
+            },
+            {
+                idiom: "Go down in flames",
+                definition: "To fail spectacularly and completely.",
+                examples: [
+                    "His plan to start a business went down in flames when he ran out of money.",
+                    "The project went down in flames because of poor communication."
+                ]
+            },
+            {
+                idiom: "Go out on a limb",
+                definition: "To take a risk or do something that others might not support.",
+                examples: [
+                    "He went out on a limb by suggesting a completely new strategy.",
+                    "She went out on a limb and defended her unpopular opinion."
+                ]
+            },
+            {
+                idiom: "Have your cake and eat it too",
+                definition: "To want to enjoy two contradictory things at the same time.",
+                examples: [
+                    "You can't have your cake and eat it too--you either save money or go on vacation.",
+                    "He wants to work less but earn more. You can't have your cake and eat it too."
+                ]
+            },
+            {
+                idiom: "In hot water",
+                definition: "To be in trouble or a difficult situation.",
+                examples: [
+                    "He's in hot water for missing the deadline.",
+                    "She got into hot water after forgetting to tell her boss about the meeting."
+                ]
+            },
+            {
+                idiom: "Keep your head above water",
+                definition: "To manage to survive or deal with a difficult situation, especially financially or emotionally.",
+                examples: [
+                    "With rising expenses, it's hard to keep our head above water these days.",
+                    "She's juggling so many tasks at work, but she's managing to keep her head above water."
+                ]
+            },
+            {
+                idiom: "Make ends meet",
+                definition: "To have just enough money to cover your basic living expenses.",
+                examples: [
+                    "It's hard to make ends meet on such a small salary.",
+                    "They had to take on extra jobs to make ends meet after the rent increased."
+                ]
+            },
+            {
+                idiom: "Miss the boat",
+                definition: "To miss an opportunity because you didn't act quickly enough.",
+                examples: [
+                    "He missed the boat by not applying for the job before the deadline.",
+                    "They didn't invest in the company early on, and now they've missed the boat."
+                ]
+            },
+            {
+                idiom: "On thin ice",
+                definition: "To be in a risky or dangerous situation, usually because of previous actions.",
+                examples: [
+                    "After missing several deadlines, he's on thin ice with his manager.",
+                    "You're on thin ice if you keep showing up late to class."
+                ]
+            },
+            {
+                idiom: "Out of the blue",
+                definition: "Something that happens unexpectedly or without warning.",
+                examples: [
+                    "The job offer came out of the blue--I wasn't even looking for one.",
+                    "She called me out of the blue after years of no contact."
+                ]
+            },
+            {
+                idiom: "Play devil's advocate",
+                definition: "To argue against an idea or point of view for the sake of debate or to test its strength, even if you don't personally agree.",
+                examples: [
+                    "I'll play devil's advocate and point out the potential risks of your plan.",
+                    "During the discussion, he played devil's advocate to encourage critical thinking."
+                ]
+            },
+            {
+                idiom: "Pull yourself together",
+                definition: "To calm down and regain control of your emotions in a stressful situation.",
+                examples: [
+                    "After hearing the bad news, she took a moment to pull herself together and focus.",
+                    "You need to pull yourself together before the presentation--you've got this!"
+                ]
+            },
+            {
+                idiom: "Put your foot in your mouth",
+                definition: "To say something embarrassing, inappropriate, or offensive by accident.",
+                examples: [
+                    "I really put my foot in my mouth when I asked her about her husband, not knowing they'd divorced.",
+                    "He put his foot in his mouth by making a joke at the wrong time."
+                ]
+            },
+            {
+                idiom: "Rain on someone's parade",
+                definition: "To spoil someone's plans or ruin their moment of happiness.",
+                examples: [
+                    "I don't want to rain on your parade, but the weather forecast says it's going to rain during the picnic.",
+                    "She was excited about her idea, but her boss rained on her parade by pointing out all the flaws."
+                ]
+            },
+            {
+                idiom: "See eye to eye",
+                definition: "To agree with someone or have the same opinion on something.",
+                examples: [
+                    "We don't always see eye to eye, but we respect each other's opinions.",
+                    "They finally saw eye to eye on how to handle the situation after hours of discussion."
+                ]
+            },
+            {
+                idiom: "Shoot for the stars",
+                definition: "To set very high goals or ambitions for yourself.",
+                examples: [
+                    "Don't settle for small dreams--shoot for the stars and work hard to achieve them.",
+                    "He's shooting for the stars by applying to the most prestigious universities."
+                ]
+            },
+            {
+                idiom: "Sit on the fence",
+                definition: "To avoid making a decision or taking a side in a disagreement or debate.",
+                examples: [
+                    "He's sitting on the fence about whether to accept the job offer or stay in his current role.",
+                    "You can't sit on the fence forever--you need to decide which option to choose."
+                ]
+            },
+            {
+                idiom: "Take the bull by the horns",
+                definition: "To face a difficult situation directly and take control of it.",
+                examples: [
+                    "She took the bull by the horns and confronted her boss about the unfair workload.",
+                    "It's time to take the bull by the horns and start fixing the problems in your department."
+                ]
+            },
+            {
+                idiom: "The icing on the cake",
+                definition: "An extra benefit or positive addition to an already good situation.",
+                examples: [
+                    "The promotion was great, but the bonus was the icing on the cake.",
+                    "Winning the championship was amazing, and the cheering fans were the icing on the cake."
+                ]
+            },
+            {
+                idiom: "Turn a blind eye",
+                definition: "To ignore something wrong or bad, often intentionally.",
+                examples: [
+                    "The teacher turned a blind eye to the students who were whispering during the test.",
+                    "You can't turn a blind eye to corruption if you want things to change."
+                ]
+            },
+            {
+                idiom: "Up in the air",
+                definition: "Something that is uncertain or undecided.",
+                examples: [
+                    "His plans for the weekend are still up in the air because he hasn't heard back from his friends.",
+                    "The future of the project is up in the air until the budget is approved."
+                ]
+            },
+            {
+                idiom: "Wear your heart on your sleeve",
+                definition: "To openly express your emotions and feelings.",
+                examples: [
+                    "He wears his heart on his sleeve, so it's easy to tell when he's upset.",
+                    "She's not afraid to wear her heart on her sleeve and show how much she cares."
+                ]
+            },
+            {
+                idiom: "When pigs fly",
+                definition: "Something that will never happen or is highly unlikely.",
+                examples: [
+                    "He'll clean his room when pigs fly--he's the messiest person I know!",
+                    "She said she'd lend me her favorite dress, but that'll happen when pigs fly."
+                ]
+            },
+            {
+                idiom: "You can't judge a book by its cover",
+                definition: "You can't determine someone's or something's value or character based solely on appearance.",
+                examples: [
+                    "The house looked small from the outside, but you can't judge a book by its cover--it was huge inside.",
+                    "Don't assume he's unfriendly just because he looks serious. You can't judge a book by its cover."
+                ]
+            },
+            {
+                idiom: "Your guess is as good as mine",
+                definition: "A way of saying you don't know the answer to something.",
+                examples: [
+                    "When will the train arrive? Your guess is as good as mine.",
+                    "She asked me how the movie ends, but my guess is as good as hers--I haven't seen it yet."
+                ]
+            },
+            {
+                idiom: "Water under the bridge",
+                definition: "A past event or issue that is no longer important or worth worrying about.",
+                examples: [
+                    "Their argument is water under the bridge--they're friends again now.",
+                    "Let's not bring up old mistakes--it's all water under the bridge."
+                ]
+            },
+            {
+                idiom: "The tip of the iceberg",
+                definition: "A small, visible part of a much larger problem or situation.",
+                examples: [
+                    "The complaints we've received are just the tip of the iceberg--there are likely many more issues.",
+                    "The financial scandal was only the tip of the iceberg; more problems were discovered later."
+                ]
+            },
+            {
+                idiom: "Practice what you preach",
+                definition: "To follow the advice or principles you tell others to follow.",
+                examples: [
+                    "If you tell others to stay healthy, you should practice what you preach by exercising and eating well.",
+                    "He's always talking about honesty, but he doesn't practice what he preaches."
+                ]
+            },
+            {
+                idiom: "Keep your cards close to your chest",
+                definition: "To keep your plans, ideas, or intentions secret and not reveal them to others.",
+                examples: [
+                    "She's keeping her cards close to her chest about her next career move.",
+                    "The company is keeping its cards close to its chest about the new product launch."
+                ]
+            },
+            {
+                idiom: "Hit the roof",
+                definition: "To become extremely angry or upset.",
+                examples: [
+                    "When he found out someone had scratched his car, he hit the roof.",
+                    "My mom will hit the roof if I forget to do my homework again."
+                ]
+            },
+            {
+                idiom: "Blow off steam",
+                definition: "To release built-up stress or emotions by doing something active or relaxing.",
+                examples: [
+                    "After a stressful day at work, he went for a run to blow off steam.",
+                    "She likes to blow off steam by playing video games after school."
+                ]
+            },
+            {
+                idiom: "A storm in a teacup",
+                definition: "A small problem or issue that has been exaggerated and blown out of proportion.",
+                examples: [
+                    "Their argument about the movie was just a storm in a teacup--it wasn't a big deal.",
+                    "Don't worry about that mistake; it's just a storm in a teacup."
+                ]
+            },
+            {
+                idiom: "Break the mold",
+                definition: "To do something in a completely new, different, or innovative way.",
+                examples: [
+                    "Her unique artwork really breaks the mold in the world of modern art.",
+                    "He broke the mold by starting a business that no one had ever thought of before."
+                ]
+            },
+            {
+                idiom: "Face the music",
+                definition: "To accept responsibility and deal with the consequences of your actions.",
+                examples: [
+                    "He made a mistake at work, and now he has to face the music during the meeting.",
+                    "It's time to face the music and admit that you were wrong."
+                ]
+            },
+            {
+                idiom: "A leopard can't change its spots",
+                definition: "People cannot change their true nature or character, no matter how hard they try.",
+                examples: [
+                    "He apologized, but a leopard can't change its spots--he's always going to be unreliable.",
+                    "She promised to be less controlling, but a leopard can't change its spots."
+                ]
+            },
+            {
+                idiom: "By the book",
+                definition: "To follow the rules or procedures exactly as they are written.",
+                examples: [
+                    "The lawyer did everything by the book to make sure the contract was valid.",
+                    "He's known for doing things by the book, so you can trust his work."
+                ]
+            },
+            {
+                idiom: "Cry wolf",
+                definition: "To lie or give a false alarm so many times that people stop believing you.",
+                examples: [
+                    "If you keep crying wolf about being sick, no one will believe you when you really are.",
+                    "The boy cried wolf so often that no one came when he actually needed help."
+                ]
+            },
+            {
+                idiom: "Every dog has its day",
+                definition: "Everyone will have their moment of success or good fortune at some point.",
+                examples: [
+                    "Don't give up--every dog has its day, and your time will come.",
+                    "She finally got the recognition she deserved. Every dog has its day!"
+                ]
+            },
+            {
+                idiom: "Have a chip on your shoulder",
+                definition: "To be easily offended or to feel like you are treated unfairly because of past experiences.",
+                examples: [
+                    "He has a chip on his shoulder about being passed over for the promotion.",
+                    "She always seems to have a chip on her shoulder, ready to argue with anyone."
+                ]
+            },
+            {
+                idiom: "In the nick of time",
+                definition: "To do something just before it's too late.",
+                examples: [
+                    "We arrived at the airport in the nick of time and made our flight.",
+                    "The firefighters saved the building in the nick of time before it collapsed."
+                ]
+            },
+            {
+                idiom: "Leave no stone unturned",
+                definition: "To try every possible way to achieve something or solve a problem.",
+                examples: [
+                    "The detectives left no stone unturned in their search for the missing person.",
+                    "She left no stone unturned when researching colleges to find the best one."
+                ]
+            },
+            {
+                idiom: "Make a long story short",
+                definition: "To give only the main points of a story or explanation.",
+                examples: [
+                    "To make a long story short, we missed the bus and had to walk home.",
+                    "He explained, \"To make a long story short, the meeting was postponed.\""
+                ]
+            },
+            {
+                idiom: "Over the moon",
+                definition: "Extremely happy or delighted.",
+                examples: [
+                    "She was over the moon when she found out she got the job.",
+                    "They were over the moon about the birth of their first child."
+                ]
+            },
+            {
+                idiom: "Pull the wool over someone's eyes",
+                definition: "To deceive or trick someone.",
+                examples: [
+                    "The scammer tried to pull the wool over her eyes, but she didn't fall for it.",
+                    "Don't let them pull the wool over your eyes with fake promises."
+                ]
+            },
+            {
+                idiom: "A sight for sore eyes",
+                definition: "Someone or something that is very pleasant to see, especially after a long time or something unpleasant.",
+                examples: [
+                    "After months of being apart, seeing her again was a sight for sore eyes.",
+                    "After a long day at work, my cozy bed is always a sight for sore eyes."
+                ]
+            },
+            {
+                idiom: "Think outside the box",
+                definition: "To come up with creative or unconventional ideas.",
+                examples: [
+                    "If we want to solve this problem, we'll need to think outside the box.",
+                    "Her ability to think outside the box led to an innovative solution."
+                ]
+            },
+            {
+                idiom: "Turn over a new leaf",
+                definition: "To make a fresh start or begin to act in a better or more responsible way.",
+                examples: [
+                    "He's decided to turn over a new leaf and focus on his studies this semester.",
+                    "After the argument, they turned over a new leaf and worked on their friendship."
+                ]
+            }
+        ];
+
+        // Badges data
+        const badgesData = [
+            { id: "bronze-learner", name: "Bronze Learner", description: "Learned 10 idioms", icon: "fas fa-book", color: "bg-amber-600", requirement: { type: "idiomsLearned", value: 10 } },
+            { id: "silver-learner", name: "Silver Learner", description: "Learned 25 idioms", icon: "fas fa-book", color: "bg-gray-400", requirement: { type: "idiomsLearned", value: 25 } },
+            { id: "gold-learner", name: "Gold Learner", description: "Learned 50 idioms", icon: "fas fa-book", color: "bg-yellow-500", requirement: { type: "idiomsLearned", value: 50 } },
+            { id: "platinum-learner", name: "Platinum Learner", description: "Learned 100 idioms", icon: "fas fa-book", color: "bg-blue-400", requirement: { type: "idiomsLearned", value: 100 } },
+            { id: "quiz-novice", name: "Quiz Novice", description: "Completed 5 quizzes", icon: "fas fa-clipboard-check", color: "bg-green-500", requirement: { type: "quizzesCompleted", value: 5 } },
+            { id: "quiz-expert", name: "Quiz Expert", description: "Completed 15 quizzes", icon: "fas fa-clipboard-check", color: "bg-indigo-500", requirement: { type: "quizzesCompleted", value: 15 } },
+            { id: "quiz-master", name: "Quiz Master", description: "Completed 30 quizzes", icon: "fas fa-clipboard-check", color: "bg-purple-600", requirement: { type: "quizzesCompleted", value: 30 } },
+            { id: "point-collector", name: "Point Collector", description: "Earned 100 points", icon: "fas fa-star", color: "bg-amber-500", requirement: { type: "totalPoints", value: 100 } },
+            { id: "point-hoarder", name: "Point Hoarder", description: "Earned 500 points", icon: "fas fa-star", color: "bg-amber-600", requirement: { type: "totalPoints", value: 500 } },
+            { id: "point-master", name: "Point Master", description: "Earned 1000 points", icon: "fas fa-star", color: "bg-amber-700", requirement: { type: "totalPoints", value: 1000 } },
+            { id: "streak-starter", name: "Streak Starter", description: "Maintained a 3-day streak", icon: "fas fa-fire", color: "bg-red-500", requirement: { type: "streak", value: 3 } },
+            { id: "streak-keeper", name: "Streak Keeper", description: "Maintained a 7-day streak", icon: "fas fa-fire", color: "bg-red-600", requirement: { type: "streak", value: 7 } },
+            { id: "perfect-quiz", name: "Perfect Quiz", description: "Got all answers correct in a quiz", icon: "fas fa-check-double", color: "bg-emerald-500", requirement: { type: "perfectQuiz", value: true } }
+        ];
+
+        // Achievements
+        const achievementsData = [
+            { id: "first-quiz", name: "First Steps", description: "Completed your first quiz", icon: "fas fa-shoe-prints", triggered: { type: "quizzesCompleted", value: 1 } },
+            { id: "fifth-quiz", name: "Getting Started", description: "Completed 5 quizzes", icon: "fas fa-clipboard-check", triggered: { type: "quizzesCompleted", value: 5 } },
+            { id: "tenth-quiz", name: "Quiz Enthusiast", description: "Completed 10 quizzes", icon: "fas fa-clipboard-check", triggered: { type: "quizzesCompleted", value: 10 } },
+            { id: "idioms-10", name: "Idiom Novice", description: "Learned 10 idioms", icon: "fas fa-book", triggered: { type: "idiomsLearned", value: 10 } },
+            { id: "idioms-25", name: "Idiom Apprentice", description: "Learned 25 idioms", icon: "fas fa-book", triggered: { type: "idiomsLearned", value: 25 } },
+            { id: "idioms-50", name: "Idiom Expert", description: "Learned 50 idioms", icon: "fas fa-book", triggered: { type: "idiomsLearned", value: 50 } },
+            { id: "points-100", name: "Century Club", description: "Earned 100 points", icon: "fas fa-star", triggered: { type: "totalPoints", value: 100 } },
+            { id: "points-500", name: "Half-Millennium", description: "Earned 500 points", icon: "fas fa-star", triggered: { type: "totalPoints", value: 500 } },
+            { id: "streak-3", name: "Consistent Learner", description: "Maintained a 3-day streak", icon: "fas fa-fire", triggered: { type: "streak", value: 3 } }
+        ];
+
+        // Game state variables
+        let currentScreen = 'home-screen';
+        let quizMode = '';
+        let currentQuizQuestions = [];
+        let currentQuestionIndex = 0;
+        let currentScore = 0;
+        let correctAnswers = 0;
+        let newIdiomsLearned = [];
+        let randomIdiom = null;
+
+        // User progress variables (will be stored in localStorage)
+        let userProgress = {
+            idiomsLearned: [],
+            totalPoints: 0,
+            quizzesCompleted: 0,
+            lastLogin: null,
+            currentStreak: 0,
+            highestStreak: 0,
+            badges: [],
+            achievements: [],
+            leaderboard: []
+        };
+
+        // Initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load user progress from localStorage
+            loadUserProgress();
+            
+            // Update UI with user progress
+            updateProgressUI();
+            
+            // Add event listeners
+            setupEventListeners();
+        });
+
+        // Load user progress from localStorage
+        function loadUserProgress() {
+            try {
+                const savedProgress = localStorage.getItem('idiomsQuizProgress');
+                if (savedProgress) {
+                    userProgress = JSON.parse(savedProgress);
+                }
+                
+                // Check for streak
+                updateStreak();
+            } catch (e) {
+                console.error("Error loading progress:", e);
+                userProgress = {
+                    idiomsLearned: [],
+                    totalPoints: 0,
+                    quizzesCompleted: 0,
+                    lastLogin: null,
+                    currentStreak: 0,
+                    highestStreak: 0,
+                    badges: [],
+                    achievements: [],
+                    leaderboard: []
+                };
+            }
+        }
+
+        // Update and save user progress
+        function saveUserProgress() {
+            try {
+                localStorage.setItem('idiomsQuizProgress', JSON.stringify(userProgress));
+            } catch (e) {
+                console.error("Error saving progress:", e);
+                showNotification("Error", "Could not save progress. Your browser might be in private mode or storage might be full.", "error");
+            }
+        }
+
+        // Update streak based on last login
+        function updateStreak() {
+            const today = new Date().toDateString();
+            const lastLoginDate = userProgress.lastLogin ? new Date(userProgress.lastLogin).toDateString() : null;
+            
+            if (!lastLoginDate) {
+                // First time login
+                userProgress.currentStreak = 1;
+            } else if (lastLoginDate === today) {
+                // Already logged in today, don't update streak
+            } else {
+                // Check if last login was yesterday
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayString = yesterday.toDateString();
+                
+                if (lastLoginDate === yesterdayString) {
+                    userProgress.currentStreak += 1;
+                } else {
+                    // Streak broken
+                    userProgress.currentStreak = 1;
+                }
+            }
+            
+            // Update highest streak if needed
+            if (userProgress.currentStreak > userProgress.highestStreak) {
+                userProgress.highestStreak = userProgress.currentStreak;
+            }
+            
+            // Update last login
+            userProgress.lastLogin = today;
+            
+            // Save changes
+            saveUserProgress();
+        }
+
+        // Update UI with user progress
+        function updateProgressUI() {
+            // Stats
+            document.getElementById('idioms-learned-count').textContent = userProgress.idiomsLearned.length;
+            document.getElementById('total-points-count').textContent = userProgress.totalPoints;
+            document.getElementById('quizzes-completed-count').textContent = userProgress.quizzesCompleted;
+            document.getElementById('current-streak-count').textContent = userProgress.currentStreak;
+            
+            // Badges
+            updateBadgesUI();
+        }
+
+        // Update badges UI
+        function updateBadgesUI() {
+            const badgesContainer = document.getElementById('badges-container');
+            badgesContainer.innerHTML = '';
+            
+            if (userProgress.badges.length === 0) {
+                badgesContainer.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-sm">No badges earned yet. Complete quizzes to earn badges!</p>';
+                return;
+            }
+            
+            userProgress.badges.forEach(badgeId => {
+                const badge = badgesData.find(b => b.id === badgeId);
+                if (badge) {
+                    const badgeElement = document.createElement('div');
+                    badgeElement.className = 'badge flex flex-col items-center justify-center p-2 rounded-lg cursor-pointer';
+                    badgeElement.title = `${badge.name}: ${badge.description}`;
+                    badgeElement.innerHTML = `
+                        <div class="w-10 h-10 rounded-full ${badge.color} flex items-center justify-center text-white mb-1">
+                            <i class="${badge.icon}"></i>
+                        </div>
+                        <span class="text-xs text-center">${badge.name}</span>
+                    `;
+                    badgesContainer.appendChild(badgeElement);
+                }
+            });
+        }
+
+        // Check for new badges
+        function checkForBadges() {
+            badgesData.forEach(badge => {
+                if (userProgress.badges.includes(badge.id)) {
+                    return; // Already earned
+                }
+                
+                let earned = false;
+                
+                switch (badge.requirement.type) {
+                    case 'idiomsLearned':
+                        earned = userProgress.idiomsLearned.length >= badge.requirement.value;
+                        break;
+                    case 'quizzesCompleted':
+                        earned = userProgress.quizzesCompleted >= badge.requirement.value;
+                        break;
+                    case 'totalPoints':
+                        earned = userProgress.totalPoints >= badge.requirement.value;
+                        break;
+                    case 'streak':
+                        earned = userProgress.currentStreak >= badge.requirement.value;
+                        break;
+                    case 'perfectQuiz':
+                        // This is checked separately after each quiz
+                        break;
+                }
+                
+                if (earned) {
+                    userProgress.badges.push(badge.id);
+                    showNotification(`Badge Earned: ${badge.name}`, `${badge.description}`, 'success');
+                }
+            });
+            
+            saveUserProgress();
+            updateBadgesUI();
+        }
+
+        // Check for achievements
+        function checkForAchievements() {
+            let newAchievements = [];
+            
+            achievementsData.forEach(achievement => {
+                if (userProgress.achievements.includes(achievement.id)) {
+                    return; // Already earned
+                }
+                
+                let earned = false;
+                
+                switch (achievement.triggered.type) {
+                    case 'quizzesCompleted':
+                        earned = userProgress.quizzesCompleted >= achievement.triggered.value;
+                        break;
+                    case 'idiomsLearned':
+                        earned = userProgress.idiomsLearned.length >= achievement.triggered.value;
+                        break;
+                    case 'totalPoints':
+                        earned = userProgress.totalPoints >= achievement.triggered.value;
+                        break;
+                    case 'streak':
+                        earned = userProgress.currentStreak >= achievement.triggered.value;
+                        break;
+                }
+                
+                if (earned) {
+                    userProgress.achievements.push(achievement.id);
+                    newAchievements.push(achievement);
+                }
+            });
+            
+            saveUserProgress();
+            return newAchievements;
+        }
+
+        // Show notification
+        function showNotification(title, message, type = 'success') {
+            const toast = document.getElementById('notification-toast');
+            const titleElement = document.getElementById('notification-title');
+            const messageElement = document.getElementById('notification-message');
+            const iconElement = document.getElementById('notification-icon');
+            
+            titleElement.textContent = title;
+            messageElement.textContent = message;
+            
+            // Update icon based on type
+            if (type === 'success') {
+                iconElement.className = 'w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center mr-3';
+                iconElement.innerHTML = '<i class="fas fa-check"></i>';
+            } else if (type === 'error') {
+                iconElement.className = 'w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center mr-3';
+                iconElement.innerHTML = '<i class="fas fa-times"></i>';
+            } else if (type === 'info') {
+                iconElement.className = 'w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center mr-3';
+                iconElement.innerHTML = '<i class="fas fa-info"></i>';
+            } else if (type === 'warning') {
+                iconElement.className = 'w-8 h-8 rounded-full bg-yellow-500 text-white flex items-center justify-center mr-3';
+                iconElement.innerHTML = '<i class="fas fa-exclamation"></i>';
+            } else if (type === 'achievement') {
+                iconElement.className = 'w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center mr-3';
+                iconElement.innerHTML = '<i class="fas fa-trophy"></i>';
+            }
+            
+            // Show toast
+            toast.classList.remove('hidden', 'translate-y-10', 'opacity-0');
+            toast.classList.add('transform', 'translate-y-0', 'opacity-100');
+            
+            // Hide toast after 3 seconds
+            setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 300);
+            }, 3000);
+        }
+
+        // Generate confetti effect
+        function createConfetti() {
+            const confettiCount = 100;
+            const container = document.body;
+            
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                
+                // Random color
+                const colors = ['#5D5CDE', '#F97316', '#10B981', '#EF4444', '#FBBF24'];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.backgroundColor = color;
+                
+                // Random position
+                const left = Math.random() * 100;
+                confetti.style.left = `${left}vw`;
+                
+                // Random animation duration
+                const duration = 3 + Math.random() * 2;
+                confetti.style.animationDuration = `${duration}s`;
+                
+                // Random delay
+                const delay = Math.random() * 0.5;
+                confetti.style.animationDelay = `${delay}s`;
+                
+                container.appendChild(confetti);
+                
+                // Remove confetti after animation
+                setTimeout(() => {
+                    confetti.remove();
+                }, duration * 1000 + (delay * 1000));
+            }
+        }
+
+        // Generate random idiom
+        function generateRandomIdiom() {
+            const availableIdioms = idiomsData;
+            randomIdiom = availableIdioms[Math.floor(Math.random() * availableIdioms.length)];
+            
+            // Update UI with random idiom
+            updateRandomIdiomUI();
+        }
+
+        // Update random idiom UI
+        function updateRandomIdiomUI() {
+            if (!randomIdiom) return;
+            
+            document.getElementById('random-idiom-text').textContent = randomIdiom.idiom;
+            document.getElementById('random-idiom-title').textContent = randomIdiom.idiom;
+            document.getElementById('random-idiom-definition').textContent = randomIdiom.definition;
+            document.getElementById('random-example-1').textContent = '• ' + randomIdiom.examples[0];
+            document.getElementById('random-example-2').textContent = '• ' + randomIdiom.examples[1];
+            
+            // Check if user has already learned this idiom
+            const alreadyLearned = userProgress.idiomsLearned.includes(randomIdiom.idiom);
+            const markLearnedBtn = document.getElementById('mark-learned-btn');
+            
+            if (alreadyLearned) {
+                markLearnedBtn.textContent = 'Already Learned';
+                markLearnedBtn.disabled = true;
+                markLearnedBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                markLearnedBtn.textContent = 'Mark as Learned (+5 points)';
+                markLearnedBtn.disabled = false;
+                markLearnedBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            
+            // Reset flip card
+            document.querySelector('.flip-card').classList.remove('flipped');
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Navigation buttons
+            document.getElementById('start-quiz-btn').addEventListener('click', () => showScreen('quiz-selection-screen'));
+            document.getElementById('leaderboard-btn').addEventListener('click', () => {
+                showLeaderboard();
+                showScreen('leaderboard-screen');
+            });
+            document.getElementById('review-idioms-btn').addEventListener('click', () => {
+                showLearnedIdioms();
+                showScreen('review-idioms-screen');
+            });
+            document.getElementById('random-idiom-btn').addEventListener('click', () => {
+                generateRandomIdiom();
+                showScreen('random-idiom-screen');
+            });
+            document.getElementById('back-to-home-from-selection').addEventListener('click', () => showScreen('home-screen'));
+            document.getElementById('back-from-leaderboard-btn').addEventListener('click', () => showScreen('home-screen'));
+            document.getElementById('back-from-review-btn').addEventListener('click', () => showScreen('home-screen'));
+            document.getElementById('back-from-random-btn').addEventListener('click', () => showScreen('home-screen'));
+            document.getElementById('back-to-home-btn').addEventListener('click', () => showScreen('home-screen'));
+            document.getElementById('try-different-mode-btn').addEventListener('click', () => showScreen('quiz-selection-screen'));
+            document.getElementById('quit-quiz-btn').addEventListener('click', confirmQuitQuiz);
+            
+            // Quiz mode selection
+            document.querySelectorAll('.start-mode-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    quizMode = e.target.getAttribute('data-mode');
+                    startQuiz(quizMode);
+                });
+            });
+            
+            // Quiz interaction
+            document.getElementById('next-question-btn').addEventListener('click', loadNextQuestion);
+            document.getElementById('fill-blank-submit').addEventListener('click', checkFillBlankAnswer);
+            document.getElementById('fill-blank-input').addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    checkFillBlankAnswer();
+                }
+            });
+            document.getElementById('show-hint-btn').addEventListener('click', showHint);
+            
+            // Reset progress
+            document.getElementById('reset-progress-btn').addEventListener('click', () => {
+                document.getElementById('reset-modal').classList.remove('hidden');
+            });
+            document.getElementById('cancel-reset-btn').addEventListener('click', () => {
+                document.getElementById('reset-modal').classList.add('hidden');
+            });
+            document.getElementById('confirm-reset-btn').addEventListener('click', resetProgress);
+            
+            // Screenshot functionality
+            document.getElementById('download-progress-btn').addEventListener('click', takeProgressScreenshot);
+            document.getElementById('take-screenshot-btn').addEventListener('click', takeCertificateScreenshot);
+            
+            // Random idiom interactions
+            document.getElementById('flip-random-idiom').addEventListener('click', () => {
+                document.querySelector('.flip-card').classList.add('flipped');
+            });
+            document.getElementById('flip-back-btn').addEventListener('click', () => {
+                document.querySelector('.flip-card').classList.remove('flipped');
+            });
+            document.getElementById('mark-learned-btn').addEventListener('click', markRandomIdiomAsLearned);
+            document.getElementById('get-new-random-btn').addEventListener('click', () => {
+                generateRandomIdiom();
+            });
+        }
+
+        // Show a specific screen
+        function showScreen(screenId) {
+            // Hide all screens
+            document.getElementById('home-screen').classList.add('hidden');
+            document.getElementById('quiz-selection-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('quiz-results-screen').classList.add('hidden');
+            document.getElementById('leaderboard-screen').classList.add('hidden');
+            document.getElementById('review-idioms-screen').classList.add('hidden');
+            document.getElementById('random-idiom-screen').classList.add('hidden');
+            
+            // Show selected screen
+            document.getElementById(screenId).classList.remove('hidden');
+            
+            currentScreen = screenId;
+            
+            // Special cases
+            if (screenId === 'home-screen') {
+                updateProgressUI();
+                checkForBadges();
+            } else if (screenId === 'random-idiom-screen') {
+                // Reset flip state
+                document.querySelector('.flip-card').classList.remove('flipped');
+            }
+        }
+
+        // Start quiz
+        function startQuiz(mode) {
+            quizMode = mode;
+            currentQuestionIndex = 0;
+            currentScore = 0;
+            correctAnswers = 0;
+            newIdiomsLearned = [];
+            
+            // Generate quiz questions
+            generateQuizQuestions();
+            
+            // Update UI
+            updateQuizModeTitle();
+            loadQuestion();
+            
+            // Show quiz screen
+            showScreen('quiz-screen');
+        }
+
+        // Generate quiz questions based on mode
+        function generateQuizQuestions() {
+            // Shuffle idioms data
+            const shuffledIdioms = [...idiomsData].sort(() => Math.random() - 0.5);
+            
+            // Select 10 idioms for the quiz, prioritizing ones the user hasn't learned yet
+            const unlearned = shuffledIdioms.filter(idiom => !userProgress.idiomsLearned.includes(idiom.idiom));
+            const learned = shuffledIdioms.filter(idiom => userProgress.idiomsLearned.includes(idiom.idiom));
+            
+            let selectedIdioms = [];
+            
+            if (unlearned.length >= 10) {
+                // Enough unlearned idioms
+                selectedIdioms = unlearned.slice(0, 10);
+            } else if (unlearned.length > 0) {
+                // Some unlearned idioms, fill the rest with learned ones
+                selectedIdioms = [...unlearned, ...learned.slice(0, 10 - unlearned.length)];
+            } else {
+                // All idioms learned, just use learned ones
+                selectedIdioms = learned.slice(0, 10);
+            }
+            
+            // Create questions based on quiz mode
+            currentQuizQuestions = selectedIdioms.map(idiom => {
+                if (quizMode === 'multiple-choice') {
+                    // Multiple choice: Match idiom to definition
+                    const correctAnswer = idiom.definition;
+                    
+                    // Get 3 incorrect definitions
+                    let incorrectAnswers = [];
+                    const otherIdioms = idiomsData.filter(i => i.idiom !== idiom.idiom);
+                    while (incorrectAnswers.length < 3) {
+                        const randomIdiom = otherIdioms[Math.floor(Math.random() * otherIdioms.length)];
+                        if (!incorrectAnswers.includes(randomIdiom.definition)) {
+                            incorrectAnswers.push(randomIdiom.definition);
+                        }
+                    }
+                    
+                    // Shuffle options
+                    const options = [correctAnswer, ...incorrectAnswers].sort(() => Math.random() - 0.5);
+                    
+                    return {
+                        idiom: idiom.idiom,
+                        question: `What does "${idiom.idiom}" mean?`,
+                        options: options,
+                        correctAnswer: correctAnswer,
+                        examples: idiom.examples
+                    };
+                } else if (quizMode === 'true-false') {
+                    // True/False: Correct or incorrect definition
+                    const isTrueQuestion = Math.random() > 0.5;
+                    
+                    if (isTrueQuestion) {
+                        // True question (correct definition)
+                        return {
+                            idiom: idiom.idiom,
+                            question: `True or False: "${idiom.idiom}" means "${idiom.definition}"`,
+                            correctAnswer: 'true',
+                            examples: idiom.examples
+                        };
+                    } else {
+                        // False question (incorrect definition)
+                        let incorrectDefinition;
+                        const otherIdioms = idiomsData.filter(i => i.idiom !== idiom.idiom);
+                        const randomIdiom = otherIdioms[Math.floor(Math.random() * otherIdioms.length)];
+                        incorrectDefinition = randomIdiom.definition;
+                        
+                        return {
+                            idiom: idiom.idiom,
+                            question: `True or False: "${idiom.idiom}" means "${incorrectDefinition}"`,
+                            correctAnswer: 'false',
+                            actualDefinition: idiom.definition,
+                            examples: idiom.examples
+                        };
+                    }
+                } else if (quizMode === 'fill-blank') {
+                    // Fill in the blank
+                    // Create a sentence using the idiom
+                    const exampleWithBlank = idiom.examples[0].replace(idiom.idiom, '_______');
+                    
+                    return {
+                        idiom: idiom.idiom,
+                        question: 'Fill in the blank with the correct idiom:',
+                        sentence: exampleWithBlank,
+                        correctAnswer: idiom.idiom,
+                        definition: idiom.definition,
+                        examples: idiom.examples
+                    };
+                }
+            });
+        }
+
+        // Update quiz mode title
+        function updateQuizModeTitle() {
+            let modeTitle = '';
+            
+            switch (quizMode) {
+                case 'multiple-choice':
+                    modeTitle = 'Multiple Choice';
+                    break;
+                case 'true-false':
+                    modeTitle = 'True or False';
+                    break;
+                case 'fill-blank':
+                    modeTitle = 'Fill in the Blank';
+                    break;
+            }
+            
+            document.getElementById('quiz-mode-title').textContent = modeTitle;
+        }
+
+        // Load current question
+        function loadQuestion() {
+            const question = currentQuizQuestions[currentQuestionIndex];
+            
+            // Update progress
+            document.getElementById('quiz-progress').textContent = `Question ${currentQuestionIndex + 1} of ${currentQuizQuestions.length}`;
+            document.getElementById('current-score').textContent = currentScore;
+            
+            // Update progress bar
+            const progressPercentage = ((currentQuestionIndex + 1) / currentQuizQuestions.length) * 100;
+            document.getElementById('quiz-progress-bar').style.width = `${progressPercentage}%`;
+            
+            // Update question text
+            document.getElementById('question-text').textContent = question.question;
+            
+            // Hide all question type containers
+            document.getElementById('multiple-choice-container').classList.add('hidden');
+            document.getElementById('true-false-container').classList.add('hidden');
+            document.getElementById('fill-blank-container').classList.add('hidden');
+            document.getElementById('feedback-card').classList.add('hidden');
+            
+            // Show appropriate container based on quiz mode
+            if (quizMode === 'multiple-choice') {
+                loadMultipleChoiceQuestion(question);
+            } else if (quizMode === 'true-false') {
+                loadTrueFalseQuestion();
+            } else if (quizMode === 'fill-blank') {
+                loadFillBlankQuestion(question);
+            }
+        }
+
+        // Load multiple choice question
+        function loadMultipleChoiceQuestion(question) {
+            const container = document.getElementById('multiple-choice-container');
+            container.classList.remove('hidden');
+            container.innerHTML = '';
+            
+            // Create option buttons
+            question.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option w-full py-3 px-4 border border-gray-300 dark:border-gray-600 rounded-lg text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition';
+                button.textContent = option;
+                button.addEventListener('click', () => checkMultipleChoiceAnswer(option, question.correctAnswer));
+                container.appendChild(button);
+            });
+        }
+
+        // Load true/false question
+        function loadTrueFalseQuestion() {
+            const container = document.getElementById('true-false-container');
+            container.classList.remove('hidden');
+            
+            // Reset option styles
+            document.querySelectorAll('.true-false-option').forEach(option => {
+                option.classList.remove('correct', 'incorrect');
+            });
+            
+            // Add event listeners
+            document.querySelectorAll('.true-false-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    const answer = option.getAttribute('data-value');
+                    const correctAnswer = currentQuizQuestions[currentQuestionIndex].correctAnswer;
+                    checkTrueFalseAnswer(answer, correctAnswer);
+                });
+            });
+        }
+
+        // Load fill in the blank question
+        function loadFillBlankQuestion(question) {
+            const container = document.getElementById('fill-blank-container');
+            container.classList.remove('hidden');
+            
+            // Set sentence with blank
+            document.getElementById('fill-blank-sentence').textContent = question.sentence;
+            
+            // Clear and focus input
+            const input = document.getElementById('fill-blank-input');
+            input.value = '';
+            setTimeout(() => input.focus(), 100);
+            
+            // Hide hint
+            document.getElementById('fill-blank-hint').classList.add('hidden');
+            document.getElementById('show-hint-btn').classList.remove('hidden');
+        }
+
+        // Check multiple choice answer
+        function checkMultipleChoiceAnswer(selectedAnswer, correctAnswer) {
+            const options = document.querySelectorAll('#multiple-choice-container .option');
+            let isCorrect = selectedAnswer === correctAnswer;
+            
+            // Highlight correct and incorrect answers
+            options.forEach(option => {
+                if (option.textContent === correctAnswer) {
+                    option.classList.add('correct');
+                } else if (option.textContent === selectedAnswer && !isCorrect) {
+                    option.classList.add('incorrect');
+                    option.classList.add('shake');
+                }
+                
+                // Disable all options
+                option.disabled = true;
+            });
+            
+            // Process answer
+            processAnswer(isCorrect);
+        }
+
+        // Check true/false answer
+        function checkTrueFalseAnswer(selectedAnswer, correctAnswer) {
+            const options = document.querySelectorAll('.true-false-option');
+            let isCorrect = selectedAnswer === correctAnswer;
+            
+            // Highlight correct and incorrect answers
+            options.forEach(option => {
+                const value = option.getAttribute('data-value');
+                
+                if (value === correctAnswer) {
+                    option.classList.add('correct');
+                } else if (value === selectedAnswer && !isCorrect) {
+                    option.classList.add('incorrect');
+                    option.classList.add('shake');
+                }
+                
+                // Disable all options
+                option.disabled = true;
+            });
+            
+            // Process answer
+            processAnswer(isCorrect);
+        }
+
+        // Check fill in the blank answer
+        function checkFillBlankAnswer() {
+            const input = document.getElementById('fill-blank-input');
+            const userAnswer = input.value.trim().toLowerCase();
+            const correctAnswer = currentQuizQuestions[currentQuestionIndex].correctAnswer.toLowerCase();
+            
+            // Check if answer is correct (allow for minor typos)
+            const isCorrect = userAnswer === correctAnswer || calculateSimilarity(userAnswer, correctAnswer) > 0.8;
+            
+            // Process answer
+            processAnswer(isCorrect);
+            
+            // Disable input and button
+            input.disabled = true;
+            document.getElementById('fill-blank-submit').disabled = true;
+            document.getElementById('show-hint-btn').classList.add('hidden');
+        }
+
+        // Process answer (common functionality for all question types)
+        function processAnswer(isCorrect) {
+            const currentQuestion = currentQuizQuestions[currentQuestionIndex];
+            
+            // Show feedback
+            const feedbackCard = document.getElementById('feedback-card');
+            const feedbackCorrect = document.getElementById('feedback-correct');
+            const feedbackIncorrect = document.getElementById('feedback-incorrect');
+            const feedbackExplanation = document.getElementById('feedback-explanation');
+            const feedbackCorrection = document.getElementById('feedback-correction');
+            const example1 = document.getElementById('example-1');
+            const example2 = document.getElementById('example-2');
+            
+            feedbackCard.classList.remove('hidden');
+            
+            if (isCorrect) {
+                // Correct answer
+                feedbackCorrect.classList.remove('hidden');
+                feedbackIncorrect.classList.add('hidden');
+                
+                // Add points based on question type
+                let pointsEarned = 0;
+                if (quizMode === 'multiple-choice') {
+                    pointsEarned = 10;
+                } else if (quizMode === 'true-false') {
+                    pointsEarned = 5;
+                } else if (quizMode === 'fill-blank') {
+                    pointsEarned = 15;
+                }
+                
+                currentScore += pointsEarned;
+                correctAnswers++;
+                
+                // Update explanation
+                if (quizMode === 'true-false') {
+                    feedbackExplanation.textContent = `Great job! "${currentQuestion.idiom}" does${currentQuestion.correctAnswer === 'true' ? '' : ' not'} mean "${currentQuestion.correctAnswer === 'true' ? currentQuestion.correctAnswer : currentQuestion.actualDefinition}"`;
+                } else {
+                    feedbackExplanation.textContent = `Great job! "${currentQuestion.idiom}" means "${currentQuestion.definition || currentQuestion.correctAnswer}"`;
+                }
+                
+                // Add to learned idioms if not already learned
+                if (!userProgress.idiomsLearned.includes(currentQuestion.idiom)) {
+                    newIdiomsLearned.push(currentQuestion.idiom);
+                }
+            } else {
+                // Incorrect answer
+                feedbackCorrect.classList.add('hidden');
+                feedbackIncorrect.classList.remove('hidden');
+                
+                // Update correction
+                if (quizMode === 'multiple-choice') {
+                    feedbackCorrection.textContent = `The correct definition of "${currentQuestion.idiom}" is: "${currentQuestion.correctAnswer}"`;
+                } else if (quizMode === 'true-false') {
+                    if (currentQuestion.correctAnswer === 'true') {
+                        feedbackCorrection.textContent = `The statement is true. "${currentQuestion.idiom}" does mean "${currentQuestion.definition || currentQuestion.correctAnswer}"`;
+                    } else {
+                        feedbackCorrection.textContent = `The statement is false. "${currentQuestion.idiom}" actually means "${currentQuestion.actualDefinition}"`;
+                    }
+                } else if (quizMode === 'fill-blank') {
+                    feedbackCorrection.textContent = `The correct idiom is: "${currentQuestion.correctAnswer}"`;
+                }
+            }
+            
+            // Update examples
+            example1.textContent = `• ${currentQuestion.examples[0]}`;
+            example2.textContent = `• ${currentQuestion.examples[1]}`;
+        }
+
+        // Load next question
+        function loadNextQuestion() {
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex < currentQuizQuestions.length) {
+                // Load next question
+                loadQuestion();
+            } else {
+                // Quiz complete
+                finishQuiz();
+            }
+        }
+
+        // Show hint for fill in the blank
+        function showHint() {
+            const hintCost = 2;
+            
+            // Check if user has enough points
+            if (currentScore < hintCost) {
+                showNotification('Not enough points', `You need ${hintCost} points to get a hint`, 'error');
+                return;
+            }
+            
+            // Deduct points
+            currentScore -= hintCost;
+            document.getElementById('current-score').textContent = currentScore;
+            
+            // Show hint
+            const correctAnswer = currentQuizQuestions[currentQuestionIndex].correctAnswer;
+            const firstLetter = correctAnswer.charAt(0);
+            document.getElementById('hint-letter').textContent = firstLetter;
+            document.getElementById('fill-blank-hint').classList.remove('hidden');
+            document.getElementById('show-hint-btn').classList.add('hidden');
+            
+            // Focus input
+            document.getElementById('fill-blank-input').focus();
+        }
+
+        // Calculate similarity between two strings (for fill in the blank)
+        function calculateSimilarity(str1, str2) {
+            const longer = str1.length > str2.length ? str1 : str2;
+            const shorter = str1.length > str2.length ? str2 : str1;
+            
+            if (longer.length === 0) {
+                return 1.0;
+            }
+            
+            const editDistance = levenshteinDistance(longer, shorter);
+            return (longer.length - editDistance) / parseFloat(longer.length);
+        }
+
+        // Levenshtein distance algorithm
+        function levenshteinDistance(str1, str2) {
+            const m = str1.length;
+            const n = str2.length;
+            
+            let dp = Array(m + 1).fill().map(() => Array(n + 1).fill(0));
+            
+            for (let i = 0; i <= m; i++) {
+                for (let j = 0; j <= n; j++) {
+                    if (i === 0) {
+                        dp[i][j] = j;
+                    } else if (j === 0) {
+                        dp[i][j] = i;
+                    } else if (str1[i - 1] === str2[j - 1]) {
+                        dp[i][j] = dp[i - 1][j - 1];
+                    } else {
+                        dp[i][j] = 1 + Math.min(
+                            dp[i - 1][j],     // deletion
+                            dp[i][j - 1],     // insertion
+                            dp[i - 1][j - 1]  // substitution
+                        );
+                    }
+                }
+            }
+            
+            return dp[m][n];
+        }
+
+        // Finish quiz and show results
+        function finishQuiz() {
+            // Update user progress
+            userProgress.quizzesCompleted++;
+            userProgress.totalPoints += currentScore;
+            
+            // Add new idioms to learned list
+            newIdiomsLearned.forEach(idiom => {
+                if (!userProgress.idiomsLearned.includes(idiom)) {
+                    userProgress.idiomsLearned.push(idiom);
+                }
+            });
+            
+            // Check for perfect quiz badge
+            if (correctAnswers === currentQuizQuestions.length && !userProgress.badges.includes('perfect-quiz')) {
+                userProgress.badges.push('perfect-quiz');
+                showNotification('Badge Earned: Perfect Quiz', 'Got all answers correct in a quiz', 'achievement');
+            }
+            
+            // Add to leaderboard
+            const leaderboardEntry = {
+                date: new Date().toLocaleDateString(),
+                mode: quizMode,
+                score: currentScore,
+                idiomsLearned: newIdiomsLearned.length,
+                timestamp: Date.now()
+            };
+            
+            userProgress.leaderboard.push(leaderboardEntry);
+            
+            // Sort leaderboard by score (descending)
+            userProgress.leaderboard.sort((a, b) => b.score - a.score);
+            
+            // Keep only top 20 entries
+            if (userProgress.leaderboard.length > 20) {
+                userProgress.leaderboard = userProgress.leaderboard.slice(0, 20);
+            }
+            
+            // Save progress
+            saveUserProgress();
+            
+            // Check for new badges and achievements
+            checkForBadges();
+            const newAchievements = checkForAchievements();
+            
+            // Update results screen
+            document.getElementById('final-score').textContent = currentScore;
+            document.getElementById('correct-answers').textContent = `${correctAnswers}/${currentQuizQuestions.length}`;
+            document.getElementById('new-idioms-learned').textContent = newIdiomsLearned.length;
+            
+            // Update certificate
+            const today = new Date().toLocaleDateString();
+            document.getElementById('cert-date').textContent = today;
+            document.getElementById('cert-idioms-count').textContent = newIdiomsLearned.length;
+            document.getElementById('cert-points').textContent = currentScore;
+            
+            // Show achievement if earned
+            const achievementSection = document.getElementById('achievement-unlocked');
+            if (newAchievements.length > 0) {
+                const achievement = newAchievements[0]; // Show the first new achievement
+                document.getElementById('achievement-text').textContent = achievement.description;
+                achievementSection.classList.remove('hidden');
+                
+                // Create confetti effect
+                createConfetti();
+            } else {
+                achievementSection.classList.add('hidden');
+            }
+            
+            // Show results screen
+            showScreen('quiz-results-screen');
+        }
+
+        // Confirm quit quiz
+        function confirmQuitQuiz() {
+            if (confirm('Are you sure you want to quit the quiz? Your progress will be lost.')) {
+                showScreen('home-screen');
+            }
+        }
+
+        // Reset progress
+        function resetProgress() {
+            // Reset user progress
+            userProgress = {
+                idiomsLearned: [],
+                totalPoints: 0,
+                quizzesCompleted: 0,
+                lastLogin: new Date().toDateString(),
+                currentStreak: 1,
+                highestStreak: 1,
+                badges: [],
+                achievements: [],
+                leaderboard: []
+            };
+            
+            // Save to localStorage
+            saveUserProgress();
+            
+            // Update UI
+            updateProgressUI();
+            
+            // Hide modal
+            document.getElementById('reset-modal').classList.add('hidden');
+            
+            // Show notification
+            showNotification('Progress Reset', 'All progress has been reset.', 'info');
+        }
+
+        // Show leaderboard
+        function showLeaderboard() {
+            const leaderboardBody = document.getElementById('leaderboard-body');
+            const emptyMessage = document.getElementById('leaderboard-empty');
+            
+            // Clear existing entries
+            leaderboardBody.innerHTML = '';
+            
+            if (userProgress.leaderboard.length === 0) {
+                // Show empty message
+                emptyMessage.classList.remove('hidden');
+                document.getElementById('leaderboard-container').classList.add('hidden');
+                document.getElementById('your-best-score').textContent = '0';
+            } else {
+                // Hide empty message
+                emptyMessage.classList.add('hidden');
+                document.getElementById('leaderboard-container').classList.remove('hidden');
+                
+                // Update best score
+                document.getElementById('your-best-score').textContent = userProgress.leaderboard[0].score;
+                
+                // Add leaderboard entries
+                userProgress.leaderboard.forEach((entry, index) => {
+                    const row = document.createElement('tr');
+                    
+                    // Highlight top 3
+                    if (index < 3) {
+                        row.className = index === 0 
+                            ? 'bg-yellow-50 dark:bg-yellow-900/20' 
+                            : index === 1 
+                                ? 'bg-gray-50 dark:bg-gray-700/30' 
+                                : 'bg-amber-50 dark:bg-amber-900/20';
+                    }
+                    
+                    row.innerHTML = `
+                        <td class="px-4 py-3">
+                            ${index < 3 
+                                ? `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full ${
+                                    index === 0 
+                                        ? 'bg-yellow-200 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200' 
+                                        : index === 1 
+                                            ? 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200' 
+                                            : 'bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200'
+                                } font-bold">${index + 1}</span>` 
+                                : index + 1
+                            }
+                        </td>
+                        <td class="px-4 py-3">${entry.date}</td>
+                        <td class="px-4 py-3">${formatQuizMode(entry.mode)}</td>
+                        <td class="px-4 py-3 font-semibold">${entry.score}</td>
+                        <td class="px-4 py-3">${entry.idiomsLearned}</td>
+                    `;
+                    
+                    leaderboardBody.appendChild(row);
+                });
+            }
+        }
+
+        // Format quiz mode for display
+        function formatQuizMode(mode) {
+            switch (mode) {
+                case 'multiple-choice':
+                    return 'Multiple Choice';
+                case 'true-false':
+                    return 'True/False';
+                case 'fill-blank':
+                    return 'Fill in the Blank';
+                default:
+                    return mode;
+            }
+        }
+
+        // Show learned idioms
+        function showLearnedIdioms() {
+            const idiomsContainer = document.getElementById('idioms-container');
+            const emptyMessage = document.getElementById('review-empty');
+            const totalCount = document.getElementById('total-idioms-learned');
+            
+            // Clear existing entries
+            idiomsContainer.innerHTML = '';
+            
+            if (userProgress.idiomsLearned.length === 0) {
+                // Show empty message
+                emptyMessage.classList.remove('hidden');
+                totalCount.textContent = '0';
+            } else {
+                // Hide empty message
+                emptyMessage.classList.add('hidden');
+                totalCount.textContent = userProgress.idiomsLearned.length;
+                
+                // Add idiom cards
+                userProgress.idiomsLearned.forEach(idiomName => {
+                    const idiom = idiomsData.find(i => i.idiom === idiomName);
+                    
+                    if (idiom) {
+                        const card = document.createElement('div');
+                        card.className = 'bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition flip-card';
+                        
+                        card.innerHTML = `
+                            <div class="flip-card-inner relative w-full h-full min-h-[150px]">
+                                <div class="flip-card-front w-full h-full flex flex-col p-4">
+                                    <h3 class="text-lg font-semibold mb-1">${idiom.idiom}</h3>
+                                    <p class="text-gray-600 dark:text-gray-400 text-sm">${idiom.definition}</p>
+                                    <button class="show-examples-btn mt-auto text-sm text-primary hover:underline">Show Examples</button>
+                                </div>
+                                <div class="flip-card-back w-full h-full bg-white dark:bg-dark-card rounded-lg p-4">
+                                    <h3 class="text-lg font-semibold mb-2">${idiom.idiom} - Examples</h3>
+                                    <ul class="space-y-2">
+                                        <li class="text-sm text-gray-600 dark:text-gray-400">• ${idiom.examples[0]}</li>
+                                        <li class="text-sm text-gray-600 dark:text-gray-400">• ${idiom.examples[1]}</li>
+                                    </ul>
+                                    <button class="hide-examples-btn mt-3 text-sm text-primary hover:underline">Hide Examples</button>
+                                </div>
+                            </div>
+                        `;
+                        
+                        idiomsContainer.appendChild(card);
+                        
+                        // Add event listeners for flipping
+                        card.querySelector('.show-examples-btn').addEventListener('click', () => {
+                            card.classList.add('flipped');
+                        });
+                        
+                        card.querySelector('.hide-examples-btn').addEventListener('click', () => {
+                            card.classList.remove('flipped');
+                        });
+                    }
+                });
+            }
+        }
+
+        // Mark random idiom as learned
+        function markRandomIdiomAsLearned() {
+            if (!randomIdiom) return;
+            
+            // Check if already learned
+            if (userProgress.idiomsLearned.includes(randomIdiom.idiom)) {
+                showNotification('Already Learned', 'You\'ve already learned this idiom!', 'info');
+                return;
+            }
+            
+            // Add to learned idioms
+            userProgress.idiomsLearned.push(randomIdiom.idiom);
+            
+            // Add points
+            userProgress.totalPoints += 5;
+            
+            // Save progress
+            saveUserProgress();
+            
+            // Update UI
+            updateProgressUI();
+            updateRandomIdiomUI();
+            
+            // Show notification
+            showNotification('Idiom Learned!', `You've learned "${randomIdiom.idiom}" and earned 5 points!`, 'success');
+            
+            // Check for badges
+            checkForBadges();
+            const newAchievements = checkForAchievements();
+            
+            // Show achievement notification if earned
+            if (newAchievements.length > 0) {
+                const achievement = newAchievements[0];
+                showNotification('Achievement Unlocked!', achievement.description, 'achievement');
+            }
+        }
+
+        // Take screenshot of progress
+        function takeProgressScreenshot() {
+            showNotification('Screenshot Tip', 'Use your device\'s screenshot function (e.g., PrtScn on Windows, Cmd+Shift+4 on Mac) to capture your progress.', 'info');
+        }
+
+        // Take screenshot of certificate
+        function takeCertificateScreenshot() {
+            showNotification('Screenshot Tip', 'Use your device\'s screenshot function to capture this certificate for your homework submission.', 'info');
+        }
+    </script>
+
+
+</body></html>
